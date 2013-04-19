@@ -1,7 +1,7 @@
 Mapfish Appserver
 =================
 
-MMapfish Appserver is a platform for building for web mapping applications using OGC standards and the Mapfish REST protocol.
+Mapfish Appserver is a platform for building web mapping applications using OGC standards and the Mapfish REST protocol.
 
 
 Features
@@ -53,7 +53,8 @@ Generate a basic viewer::
   rake mapfish:viewer:create name=myviewer template=gbzh
   rm public/index.html
 
-Add a default route to your viewer in config/routes.rb:
+Add a default route to your viewer in config/routes.rb::
+
   root :to => "apps#show", :app => "myviewer"
 
 Setup a PostGIS database and load some data::
@@ -152,7 +153,7 @@ Check your WMS setup::
 
 Open ``config/initializers/mapfish.rb`` to configure your application.
 
-Import the mapfile into a new topic:
+Import the mapfile into a new topic::
 
   rake mapfile:import_topic MAPFILE=mapconfig/maps.example.com/naturalearth.map SITE=maps.example.com
 
