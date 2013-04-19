@@ -1,0 +1,36 @@
+<div class='infokoord'><b>Informationen</b> f&uuml;r ausgew&auml;hlte Themen bei Koordinate <span id='infoxy'></span>:</div>
+<% @query_topics.each do |query_topic| %>
+  <% @topic = query_topic['topicobj'] %>
+  <% @results = query_topic['results'] %>
+  <div class="<%= query_topic['divCls'] %>">
+    <%= render :partial => @topic.info_header if (!@topic.nil? && @topic.info_header) %>
+    <%# info coord %>
+    <% for layer_result in @results do %>
+      <% layer, features, bbox = layer_result %>
+      <% begin %>
+        <% if features.is_a?(String) %>
+          <%= raw features unless Rails.env.production? %> <%# Debug error message %>
+        <% elsif features.count > 0 && !layer.info.nil? %>
+          <div class="infopart">
+          <div class="layer"><%= layer.title %></div>
+          <%= render :partial => layer.info, :as => :info, :locals => { :layer => layer, :features => features, :bbox => bbox } %>
+          <%= render :partial => layer.legend, :as => :legend unless layer.legend.nil? %>
+          </div>
+        <% end %>
+      <% rescue Exception => e %>
+        <% unless Rails.env.production? %>
+        <h2>Fehler:</h2>
+        <% if layer.info.nil? %>
+          <p>Partial '<%= layer.info_file %>' not found</p>
+        <% end %>
+        <% if layer.legend.nil? %>
+          <p>Partial '<%= layer.legend_file %>' not found</p>
+        <% end %>
+        <%= debug features %>
+        <%= debug e %>
+        <%= debug logger.error e.backtrace.join("\n") %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

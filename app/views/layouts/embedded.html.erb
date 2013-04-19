@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>GIS-Browser Admin</title>
+		<%#= stylesheet_link_tag :application, :media => "all" %>
+		<% if HOST_ZONE[request.host] == 'intranet' %>
+		<%= stylesheet_link_tag 'http://www.intranet.ktzh.ch/css/global.css' %>
+		<%= stylesheet_link_tag 'http://www.intranet.ktzh.ch/css/intranet.css' %>
+		<% else %>
+		<%= stylesheet_link_tag 'http://www.zh.ch/css/global.css' %>
+		<% end %>
+		<%= javascript_include_tag :application %>
+		<%= csrf_meta_tags %>
+	</head>
+
+	<body>
+		<% if flash.present? %>
+		<div class="error-required-box">
+			<% flash.each do |key, value| %>
+			<div class='alert-message <%= key %>'>
+				<p>
+					<%= value %>
+				</p>
+			</div>
+			<% end %>
+			<br/>
+		</div>
+		<% end %>
+
+		<%= yield %>
+
+	</body>
+
+</html>

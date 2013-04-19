@@ -1,0 +1,2 @@
+module GbapplicationsHelper
+end

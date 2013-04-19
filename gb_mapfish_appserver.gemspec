@@ -1,23 +1,38 @@
 $:.push File.expand_path("../lib", __FILE__)
 
-# Maintain your gem's version:
 require "gb_mapfish_appserver/version"
 
-# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "gb_mapfish_appserver"
   s.version     = GbMapfishAppserver::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of GbMapfishAppserver."
-  s.description = "TODO: Description of GbMapfishAppserver."
+  s.authors     = ["Pirmin Kalberer"]
+  s.email       = ["pka@sourcepole.ch"]
+  s.homepage    = ""
+  s.summary     = "Mapfish application server."
+  s.description = "Mapfish Appserver is a framework for web mapping applications using OGC standards and the Mapfish protocol."
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib,vendor}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rst"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 3.2.13"
-  # s.add_dependency "jquery-rails"
+  s.add_dependency "json"
+  s.add_dependency "acts_as_tree", "0.2.0"
 
-  s.add_development_dependency "pg"
+  s.add_dependency "devise", "2.0.4"
+  s.add_dependency "cancan", "1.6.7"
+
+  s.add_dependency "rails_admin", "0.0.5"
+  s.add_dependency "fastercsv"# required for rails_admin and Ruby <= 1.8
+
+  s.add_dependency "rgeo-geojson", "0.2.1"
+  #s.add_dependency "popen4"
+  #s.add_dependency "rmagick", :platforms => :ruby #Used in PrintController
+  #s.add_dependency "win32-open3", :platforms => [:mswin, :mingw]
+
+  s.add_dependency "pg", "0.14.0"
+  s.add_dependency "activerecord-postgis-adapter", "0.4.1"
+
+  #s.add_dependency "ruby_mapscript", :platforms => :ruby # Build problems on Windows
+
+  #s.add_development_dependency "pg"
 end

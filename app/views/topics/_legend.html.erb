@@ -1,0 +1,12 @@
+<%# automatic legend for topics without auto or custom fragments %>
+<% for layer in @topic.layers.accessible_by(current_ability).order('topics_layers.leg_sort DESC') do -%>
+
+    <% if layer.legend %>
+      <div class="legpart"> 
+      <p class="layer"><%= layer.title %></p>
+      <%= render :partial => layer.legend, :as => :legend %>
+      </div>
+    <% end -%>
+
+  <% end -%>
+

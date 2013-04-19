@@ -1,0 +1,5 @@
+<% if @topic.legend.nil? %>
+<%= render :partial => 'legend' %>
+<% else %>
+<%= render :partial => @topic.legend, :as => :legend %>
+<% end %>

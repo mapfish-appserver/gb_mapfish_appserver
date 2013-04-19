@@ -1,0 +1,40 @@
+<h2>Sign up</h2>
+
+<%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
+	<%= devise_error_messages! %>
+	
+	<%= f.hidden_field :requested_group, :value => @group.id if @group %>
+	
+	<div class="row">
+		<%= f.label :login %>
+		<%= f.text_field :login %>
+	</div>
+
+	<div class="row">
+		<%= f.label :name %>
+		<%= f.text_field :name %>
+	</div>
+
+	<div class="row">
+		<%= f.label :email %>
+		<%= f.text_field :email %>
+	</div>
+
+	<% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
+	  <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
+	<% end %>
+
+	<div class="row">
+		<%= f.label :password %>
+		<%= f.password_field :password %>
+	</div>
+
+	<div class="row">
+		<%= f.label :password_confirmation %>
+		<%= f.password_field :password_confirmation %>
+	</div>
+	
+	<div class="row">
+		<%= f.submit "Sign up", :class => 'big-submit' %>
+	</div>
+<% end %>

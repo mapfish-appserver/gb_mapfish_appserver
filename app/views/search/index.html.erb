@@ -1,0 +1,19 @@
+<p>
+  <b>Search results:</b>
+</p>
+Hits: <%= @features.size %><br/>
+Quality: <%= @quality %><p/>
+<table class='infotab'>
+  <tr>
+    <% for field in @rule.alias_fields.split(',') %>
+      <td class="tabtitle"><%= raw field %></td>
+    <% end %>
+  </tr>
+  <% for feature in @features do -%>
+    <tr>
+      <% for field in @rule.fields %>
+        <td class="tabcell"><%= feature.attributes[field] %></td>
+      <% end %>
+    </tr>
+  <% end %>
+</table>

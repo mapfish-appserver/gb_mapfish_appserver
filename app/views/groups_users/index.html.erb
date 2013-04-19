@@ -1,0 +1,39 @@
+<h1>Usergruppen Verwaltung</h1>
+
+<table>
+  <tr>
+    <th>Group</th>
+    <th>Signup-Link</th>
+  </tr>
+
+<% @groups.each do |group| %>
+  <tr>
+    <td><%= group.name %></td>
+    <td><%= link_to new_user_registration_url(:group => group.name), new_user_registration_path(:group => group.name) %></td>
+  </tr>
+<% end %>
+</table>
+
+<table>
+  <tr>
+    <th>Group</th>
+    <th>User</th>
+    <th>Granted</th>
+    <th></th>
+    <th></th>
+  </tr>
+
+<% @groups_users.each do |groups_user| %>
+  <tr>
+    <td><%= groups_user.group.name %></td>
+    <td><%= groups_user.user.name %></td>
+    <td><%= groups_user.granted %></td>
+    <td><%= link_to 'Edit', edit_groups_user_path(groups_user) %></td>
+    <td><%= link_to 'Destroy', groups_user, :confirm => 'Are you sure?', :method => :delete %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Groups user', new_groups_user_path %>

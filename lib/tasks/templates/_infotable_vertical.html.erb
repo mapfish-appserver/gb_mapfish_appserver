@@ -1,0 +1,15 @@
+<% if fields.empty? %>
+  <%% for feature in features do -%>
+  <%%= debug feature %>
+  <%% end %>
+<% else %>
+<table class="infotab">
+<% fields.each_with_index do |field, i| %>
+  <tr><td class="tabtitle"><%= aliases[i] %></td>
+  <%% for feature in features do -%>
+    <td class="tabcell"><%%= feature.<%= field %> %></td>
+  <%% end %>
+  </tr>
+<% end %>
+</table>
+<% end %>

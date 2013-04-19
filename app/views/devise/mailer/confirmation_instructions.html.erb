@@ -1,0 +1,5 @@
+<p>Werter GIS-Browser Nutzer</p>
+
+<p>Sie können Ihr Zugangskonte über folgende Adresse bestätigen:</p>
+
+<p><%= link_to 'Konto bestätigen', confirmation_url(@resource, :confirmation_token => @resource.confirmation_token) %></p>

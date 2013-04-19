@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>GIS-Browser Admin</title>
+		<%#= stylesheet_link_tag :application, :media => "all" %>
+		<% if HOST_ZONE[request.host] == 'intranet' %>
+		<%= stylesheet_link_tag 'http://www.intranet.ktzh.ch/css/global.css' %>
+		<%= stylesheet_link_tag 'http://www.intranet.ktzh.ch/css/intranet.css' %>
+		<% else %>
+		<%= stylesheet_link_tag 'http://www.zh.ch/css/global.css' %>
+		<% end %>
+		<%= javascript_include_tag :application %>
+		<%= csrf_meta_tags %>
+	</head>
+
+	<body>
+		<div id="wrapper">
+			<div role="banner" id="logo">
+				<img alt="Kanton Zürich" src="/img/logo.gif" class="logo">
+				<div>
+					<p class="identity one-line">
+						<strong>Kanton Zürich</strong><a class="home" href="http://www.zh.ch/">Startseite</a>
+					</p>
+				</div>
+			</div>
+			<div id="nav-meta" role="navigation">
+				<ul>
+					<% if user_signed_in? %>
+					<li><%= link_to current_user.login, edit_user_registration_path(current_user) %></li>
+					<li><%= link_to('Usergruppen', groups_users_path) %></li>
+					<% else %>
+					<li><%= link_to "Anmelden", new_user_session_path %></li>
+					<% end%>
+					<li><%= link_to "Karte", root_path %></li>
+				</ul>
+			</div>
+
+			<div id="main-area">
+
+				<% if flash.present? %>
+				<div class="error-required-box">
+					<% flash.each do |key, value| %>
+					<div class='alert-message <%= key %>'>
+						<p>
+							<%= value %>
+						</p>
+					</div>
+					<% end %>
+					<br/>
+				</div>
+				<% end %>
+
+				<%= yield %>
+
+				<hr />
+			</div>
+
+			<div id="footer" role="complementary">
+
+				<h1 class="hidden">Hier finden Sie die Nutzungsregelungen und das Impressum</h1>
+
+				<ul>
+					<li class="copyright">
+						&copy; 2012 Kanton Zürich
+					</li>
+					<li >
+						<a href="http://www.zh.ch/internet/de/service/nav/footer/nutzungsregelungen.html">Nutzungsregelungen</a>
+					</li>
+					<li >
+						<a href="http://www.zh.ch/internet/de/service/nav/footer/impressum.html">Impressum</a>
+					</li>
+				</ul>
+				<div class="clear"></div>
+			</div>
+		</div>
+
+	</body>
+
+</html>

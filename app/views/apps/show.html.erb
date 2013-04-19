@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GIS-Browser</title>
+    <base href="<%= request.protocol %><%= request.host %><%= request.port_string %>/apps/<%= @app %>/" />
+    <link rel="stylesheet" type="text/css" href="resources/css/cdzh/app.css"/>
+    <link rel="stylesheet" type="text/css" href="/lib/GbZh/css/gbzh.css"/>
+    <link rel="stylesheet" type="text/css" href="/lib/GbZh/css/general.css"/>
+    <script type="text/javascript" src="lib/openlayers/OpenLayers.js"></script>
+    <script type="text/javascript" src="all-classes.js"></script>
+    <script type="text/javascript">
+        var requestState = {
+            <% if user_signed_in? %>
+            user: '<%= current_user.login %>',
+            <% end %>
+            mainRequestedTopic: '<%= @topic_name %>',
+            backRequestedTopic: null,
+<%#
+            overRequestedTopic: ['WaldWNBZH','AwelNISZH'],
+            overRequestedTopic: ['xxx', 'WaldWNBZH'],
+%>
+            mainDefaultTopic: '<%= @main_default_topic %>',
+            backDefaultTopic: null,
+            offlayers: <%= raw @offlayers.to_json %>,
+            scaleDenominator: <%= @scale %>,
+            mapPos: [<%= @x %>, <%= @y %>],
+            <% if @selection_valid %>
+            selection: {
+                seltopic: '<%= @seltopic %>',
+                sellayer: '<%= @sellayer %>',
+                selproperty: '<%= @selproperty %>',
+                selvalues: <%= raw @selvalues.to_json %>,
+                selbbox: <%= raw @selbbox.to_json %>
+                <%# selzoomto: 'true',%>
+                <%# selpersist: 'false',  // bleibt sichtbar %>
+                <%# selformat: 'SLD' // SLD oder GeoJSON %>
+            },
+            <% else %>
+            selection: null,
+            <% end %>
+            filter: {
+                    filtertopic: '',
+                    filterlayer: '',
+                    filtersql: ''
+            },
+            redlining: <%= raw @redlining.to_json %>
+        };
+    </script>
+    <script type="text/javascript" src="/lib/openlayers/lib/OpenLayers/Control/ArcIntersection.js"></script>
+    <script type="text/javascript" src="/lib/openlayers/lib/OpenLayers/Control/OrthogonalLines.js"></script>
+    <script type="text/javascript" src="/lib/proj4js/lib/proj4js-compressed.js"></script>
+    <script type="text/javascript" src="/lib/proj4js/lib/defs/EPSG21781.js"></script>
+    <script type="text/javascript" src="locale/gb41-lang-<%= I18n.locale %>.js"></script>
+    <%= csrf_meta_tags %>
+</head>
+<body>
+<noscript>Bitte aktivieren Sie Javascript und Cookies, um diese Applikation zu nutzen!</noscript>
+</body>
+</html>
