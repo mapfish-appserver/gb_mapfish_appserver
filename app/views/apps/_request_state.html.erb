@@ -1,0 +1,31 @@
+    <script type="text/javascript">
+        var requestState = {
+            <% if user_signed_in? %>
+            user: '<%= current_user.login %>',
+            <% end %>
+            mainRequestedTopic: '<%= @topic_name %>',
+            backRequestedTopic: null,
+            mainDefaultTopic: '<%= @main_default_topic %>',
+            backDefaultTopic: null,
+            offlayers: <%= raw @offlayers.to_json %>,
+            scaleDenominator: <%= @scale %>,
+            mapPos: [<%= @x %>, <%= @y %>],
+            <% if @selection_valid %>
+            selection: {
+                seltopic: '<%= @seltopic %>',
+                sellayer: '<%= @sellayer %>',
+                selproperty: '<%= @selproperty %>',
+                selvalues: <%= raw @selvalues.to_json %>,
+                selbbox: <%= raw @selbbox.to_json %>
+            },
+            <% else %>
+            selection: null,
+            <% end %>
+            filter: {
+                    filtertopic: '',
+                    filterlayer: '',
+                    filtersql: ''
+            },
+            redlining: <%= raw @redlining.to_json %>
+        };
+    </script>

@@ -50,7 +50,7 @@ Keep the admin password for later.
 
 Generate a basic viewer::
 
-  rake mapfish:viewer:create name=myviewer template=gbzh
+  rake mapfish:viewer:create name=myviewer repo=https://github.com/pka/gb_gis_browser_viewer.git
   rm public/index.html
 
 Add a default route to your viewer in config/routes.rb::

@@ -5,7 +5,7 @@ module Mapfish
       class_option "default-site-name", :type => :string, :required => true
       class_option "no-migrate", :type => :boolean
 
-      source_root File.expand_path("../install/templates", __FILE__)
+      source_root File.expand_path("../templates", __FILE__)
 
       def add_geodatabase_config
         path = "#{Rails.root}/config/geodatabase.yml"

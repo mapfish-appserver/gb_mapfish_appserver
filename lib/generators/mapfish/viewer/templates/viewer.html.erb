@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GIS-Browser</title>
+    <!--<link rel="stylesheet" type="text/css" href="/apps/<%= @viewer %>/resources/css/app.css"/>-->
+    <!--<link rel="stylesheet" type="text/css" href="/apps/<%= @viewer %>//lib/..."/>-->
+    <script type="text/javascript" src="/apps/<%= @viewer %>/lib/openlayers/OpenLayers.js"></script>
+    <script type="text/javascript" src="/apps/<%= @viewer %>/all-classes.js"></script>
+    <%%= render :partial => 'request_state' %>
+    <script type="text/javascript" src="/lib/proj4js/lib/proj4js-compressed.js"></script>
+    <!--<script type="text/javascript" src="/apps/<%= @viewer %>/locale/gb41-lang-<%%= I18n.locale %>.js"></script>-->
+    <%%= csrf_meta_tags %>
+</head>
+<body>
+<noscript>Please activate Javascript and cookies to use this application!</noscript>
+</body>
+</html>
