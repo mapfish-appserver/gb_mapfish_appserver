@@ -90,6 +90,11 @@ PRINT_URL = nil #'http://localhost:8080/print-servlet-1.1/pdf/print.pdf'
         directory "../../../../../lib/tasks/templates", "lib/tasks/templates", :verbose => false
       end
 
+      def setup_sencha
+        puts "Setup sencha apps workspace..."
+        directory "sencha", "public/apps/.sencha", :verbose => false
+      end
+
       def copy_js_libs
         puts "Copying over Javascript libraries..."
         directory "../../../../../vendor/assets/javascripts", "public/lib", :verbose => false

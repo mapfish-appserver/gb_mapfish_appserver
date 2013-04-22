@@ -9,7 +9,7 @@ module Mapfish
 
       def clone_viewer
         @viewer = options["name"]
-        puts "Cloning viewer/..."
+        puts "Cloning viewer..."
         dir = Dir.mktmpdir
         begin
           git :clone => "--depth=1 #{options['repo']} #{dir}"
@@ -18,6 +18,10 @@ module Mapfish
               name = File.basename(fn).sub(/.+?(build)?$/, "#{@viewer}\\1")
               puts "Copy viewer to 'public/apps/#{name}/..."
               directory fn, "public/apps/#{name}", :verbose => false
+              if File.directory?("#{fn}/.sencha")
+                #TODO: replace app name in .sencha/app/sencha.cfg
+                directory "#{fn}/.sencha", "public/apps/#{name}/.sencha", :verbose => false
+              end
             end
           end
         ensure
