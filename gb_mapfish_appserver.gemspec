@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary     = "Mapfish application server."
   s.description = "Mapfish Appserver is a framework for web mapping applications using OGC standards and the Mapfish protocol."
 
-  s.files = Dir["{app,config,db,lib,vendor}/**/*"] + ["LICENSE", "Rakefile", "README.rst"]
+  s.files = Dir["{app,config,db,lib,vendor}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 3.2.13"

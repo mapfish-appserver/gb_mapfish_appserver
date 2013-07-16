@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gb_mapfish_appserver (0.0.1)
+    gb_mapfish_appserver (0.0.2)
       activerecord-postgis-adapter (= 0.4.1)
       acts_as_tree (= 0.2.0)
       cancan (= 1.6.7)
@@ -11,6 +11,7 @@ PATH
       pg (= 0.14.0)
       rails (~> 3.2.13)
       rails_admin (= 0.0.5)
+      rgeo (= 0.3.20)
       rgeo-geojson (= 0.2.1)
 
 GEM
@@ -88,9 +89,9 @@ GEM
       i18n (>= 0.4.0)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
-    mime-types (1.22)
+    mime-types (1.23)
     multi_json (1.7.2)
-    nokogiri (1.5.8)
+    nokogiri (1.5.9)
     orm_adapter (0.0.7)
     pg (0.14.0)
     polyglot (0.3.3)
@@ -143,7 +144,7 @@ GEM
       rgeo (>= 0.3.20)
     rgeo-geojson (0.2.1)
       rgeo (>= 0.2.8)
-    sass (3.2.7)
+    sass (3.2.8)
     sass-rails (3.2.6)
       railties (~> 3.2.0)
       sass (>= 3.1.10)
