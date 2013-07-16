@@ -24,15 +24,9 @@ Gem::Specification.new do |s|
   s.add_dependency "rails_admin", "0.0.5"
   s.add_dependency "fastercsv"# required for rails_admin and Ruby <= 1.8
 
+  s.add_dependency "rgeo", "0.3.20"
   s.add_dependency "rgeo-geojson", "0.2.1"
-  #s.add_dependency "popen4"
-  #s.add_dependency "rmagick", :platforms => :ruby #Used in PrintController
-  #s.add_dependency "win32-open3", :platforms => [:mswin, :mingw]
 
   s.add_dependency "pg", "0.14.0"
   s.add_dependency "activerecord-postgis-adapter", "0.4.1"
-
-  #s.add_dependency "ruby_mapscript", :platforms => :ruby # Build problems on Windows
-
-  #s.add_development_dependency "pg"
 end

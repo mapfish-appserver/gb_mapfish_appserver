@@ -39,7 +39,7 @@ To build a new Mapfish Appserver application, create a Rails application and inc
 
 Also make sure, you have MapScript installed::
 
-  sudo apt-get install ruby-mapscript1.9.1
+  sudo apt-get install libmapscript-ruby1.9.1
 
 Setup the Mapfish project, initialize the application database::
 
@@ -48,24 +48,28 @@ Setup the Mapfish project, initialize the application database::
 
 Keep the admin password for later.
 
-Generate a basic viewer::
+Setup a viewer::
 
-  rake mapfish:viewer:create name=myviewer template=gbzh
   rm public/index.html
+  git clone file:///home/pi/code/rails/gb_mapfish_viewer_gis_browser_dist public/apps/gbzh
+  echo public/apps/gbzh >>.gitignore
+  rake mapfish:viewer:register name=gbzh category="Base Maps"
 
 Add a default route to your viewer in config/routes.rb::
 
-  root :to => "apps#show", :app => "myviewer"
+  root :to => "apps#show", :app => "gbzh"
 
 Setup a PostGIS database and load some data::
 
   export PGPORT=5432
   createdb geodb
+  psql -d geodb -c 'CREATE ROLE "www-data" WITH LOGIN'
   psql -d geodb -c "CREATE EXTENSION postgis"
   psql -d geodb -c "GRANT ALL ON geometry_columns TO PUBLIC; GRANT ALL ON geography_columns TO PUBLIC; GRANT ALL ON spatial_ref_sys TO PUBLIC"
   wget http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_admin_0_countries_lakes.zip
   unzip ne_10m_admin_0_countries_lakes.zip
   ogr2ogr -f PostgreSQL PG:"dbname=geodb" -nln countries -nlt MULTIPOLYGON ne_10m_admin_0_countries_lakes.shp
+  psql -d geodb -c 'GRANT SELECT ON countries TO "www-data"'
 
 Create a mapfile naturalearth.map in the directory mapconfig/maps.example.com::
 

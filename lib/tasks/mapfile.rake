@@ -6,7 +6,7 @@ namespace :mapfile do
   desc "Create a topic from a mapfile. MAPFILE=file SITE=host"
   task :import_topic => :environment do
     mapfile = ENV['MAPFILE']
-    site = ENV['SITE'] || DEFAULT_SITE #Use empty string for unpublished map
+    site = ENV['SITE'] || SITE_DEFAULT #Use empty string for unpublished map
     if mapfile.nil?
       puts "Error: Missing argument MAPFILE"
     else
