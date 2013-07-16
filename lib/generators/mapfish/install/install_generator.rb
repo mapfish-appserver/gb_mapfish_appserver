@@ -5,7 +5,7 @@ module Mapfish
       class_option "default-site-name", :type => :string, :required => true
       class_option "no-migrate", :type => :boolean
 
-      source_root File.expand_path("../install/templates", __FILE__)
+      source_root File.expand_path("../templates", __FILE__)
 
       def add_geodatabase_config
         path = "#{Rails.root}/config/geodatabase.yml"
@@ -88,6 +88,11 @@ PRINT_URL = nil #'http://localhost:8080/print-servlet-1.1/pdf/print.pdf'
       def copy_map_templates
         puts "Copying templates for map import..."
         directory "../../../../../lib/tasks/templates", "lib/tasks/templates", :verbose => false
+      end
+
+      def setup_sencha
+        puts "Setup sencha apps workspace..."
+        directory "sencha", "public/apps/.sencha", :verbose => false
       end
 
       def copy_js_libs
