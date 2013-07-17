@@ -3,15 +3,16 @@ namespace :mapfile do
   require 'rubygems'
   require 'iconv'
 
-  desc "Create a topic from a mapfile. MAPFILE=file SITE=host"
+  desc "Create a topic from a mapfile. MAPFILE=file SITE=host DBONLY=false"
   task :import_topic => :environment do
     mapfile = ENV['MAPFILE']
     site = ENV['SITE'] || SITE_DEFAULT #Use empty string for unpublished map
+    dbonly = ENV['DBONLY'] || false
     if mapfile.nil?
       puts "Error: Missing argument MAPFILE"
     else
       import = MapfileImport.new(mapfile, site)
-      import.import
+      import.import(dbonly)
     end
   end
 
@@ -40,7 +41,7 @@ namespace :mapfile do
       @ic = Iconv.new('UTF-8','LATIN1')
     end
 
-    def import
+    def import(dbonly = false)
       topic = Topic.find_or_create_by_name(@map.name)
       topic.title = @map.web.metadata['ows_title'] || @map.web.metadata['wms_title']
       puts "Importing topic '#{topic.name}' with title '#{topic.title}'"
@@ -133,73 +134,75 @@ namespace :mapfile do
 
         layer.save!
 
-        #Info & Legend
-        mkdir_p File.dirname(layer.info_file_auto)
+        unless dbonly
+          #Info & Legend
+          mkdir_p File.dirname(layer.info_file_auto)
 
-        if queryable
-          if mlayer.type == MS_LAYER_RASTER || mlayer.type == MS_LAYER_ANNOTATION
-            puts "Warning: Raster/Anntotation layer '#{layer.name}' is queryable (TEMPLATE #{mlayer.template})"
-          end
-          #puts "Creating #{layer.info_file_auto}"
-          fields = layer.ident_fields.split(',') rescue []
-          aliases = if fields.empty?
-            puts "Warning: Query layer '#{layer.name}' has no attribute definition (wms_include_items)"
-            []
-          else
-            layer.alias_fields.split(',')
-          end
-          infotab_template = "_infotable_auto"
-          template = File.open(File.join(File.dirname(__FILE__), 'templates', "#{infotab_template}.html.erb")).read
-          template = ERB.new(template, nil, '<>')
-          File.open(layer.info_file_auto, 'w') do |file|
-            file << template.result(binding)
-          end
-        end
-
-        # Layer legend
-        legend_icon_path = File.join(Rails.root, 'public', 'images', 'custom', topic_name.downcase)
-        mkdir_p legend_icon_path
-        if mlayer.type != MS_LAYER_RASTER && mlayer.type != MS_LAYER_ANNOTATION
-          #puts "Creating #{layer.legend_file_auto}"
-          File.open(layer.legend_file_auto, 'w') do |file|
-            file << "<table class='legtab'>\n"
-            mlayer.classes.each_with_index do |lclass, i|
-              #Symbol size for Polygon and Line layers
-              width = 23
-              height = 13
-              filename = nil
-              if mlayer.type == MS_LAYER_POINT
-                style = lclass.styles.first
-                if style.nil?
-                  puts "Warning: Missing style in layer '#{layer.name}'"
-                else
-                  symbol = @map.symbolset.symbols[style.symbol]
-                  if style.size > 0
-                    width = height = style.size.to_i+1
-                  end
-                  if symbol.imagepath
-                    filename = symbol.imagepath
-                  end
-                end
-              end
-              if filename.nil?
-                begin
-                  icon = lclass.createLegendIcon(@map, mlayer, width, height)
-                  filename = "#{layer.name}#{i}.png"
-                  icon.save(File.join(legend_icon_path, filename))
-                rescue Exception => e
-                  puts "Warning: createLegendIcon for class '#{lclass.name}' failed: #{e}"
-                end
-              else
-                symfile = File.join(@map.mappath, filename)
-                filename = File.basename(filename)
-                cp(symfile, File.join(legend_icon_path, filename))
-              end
-              sympath ="/images/custom/#{topic_name.downcase}/#{filename}"
-              legtext = lclass.name || lclass.getExpressionString
-              file << "  <%= leg_tab_row('#{legtext}', '#{sympath}') %>\n"
+          if queryable
+            if mlayer.type == MS_LAYER_RASTER || mlayer.type == MS_LAYER_ANNOTATION
+              puts "Warning: Raster/Anntotation layer '#{layer.name}' is queryable (TEMPLATE #{mlayer.template})"
             end
-            file << "</table>\n"
+            #puts "Creating #{layer.info_file_auto}"
+            fields = layer.ident_fields.split(',') rescue []
+            aliases = if fields.empty?
+              puts "Warning: Query layer '#{layer.name}' has no attribute definition (wms_include_items)"
+              []
+            else
+              layer.alias_fields.split(',')
+            end
+            infotab_template = "_infotable_auto"
+            template = File.open(File.join(File.dirname(__FILE__), 'templates', "#{infotab_template}.html.erb")).read
+            template = ERB.new(template, nil, '<>')
+            File.open(layer.info_file_auto, 'w') do |file|
+              file << template.result(binding)
+            end
+          end
+
+          # Layer legend
+          legend_icon_path = File.join(Rails.root, 'public', 'images', 'custom', topic_name.downcase)
+          mkdir_p legend_icon_path
+          if mlayer.type != MS_LAYER_RASTER && mlayer.type != MS_LAYER_ANNOTATION
+            #puts "Creating #{layer.legend_file_auto}"
+            File.open(layer.legend_file_auto, 'w') do |file|
+              file << "<table class='legtab'>\n"
+              mlayer.classes.each_with_index do |lclass, i|
+                #Symbol size for Polygon and Line layers
+                width = 23
+                height = 13
+                filename = nil
+                if mlayer.type == MS_LAYER_POINT
+                  style = lclass.styles.first
+                  if style.nil?
+                    puts "Warning: Missing style in layer '#{layer.name}'"
+                  else
+                    symbol = @map.symbolset.symbols[style.symbol]
+                    if style.size > 0
+                      width = height = style.size.to_i+1
+                    end
+                    if symbol.imagepath
+                      filename = symbol.imagepath
+                    end
+                  end
+                end
+                if filename.nil?
+                  begin
+                    icon = lclass.createLegendIcon(@map, mlayer, width, height)
+                    filename = "#{layer.name}#{i}.png"
+                    icon.save(File.join(legend_icon_path, filename))
+                  rescue Exception => e
+                    puts "Warning: createLegendIcon for class '#{lclass.name}' failed: #{e}"
+                  end
+                else
+                  symfile = File.join(@map.mappath, filename)
+                  filename = File.basename(filename)
+                  cp(symfile, File.join(legend_icon_path, filename))
+                end
+                sympath ="/images/custom/#{topic_name.downcase}/#{filename}"
+                legtext = lclass.name || lclass.getExpressionString
+                file << "  <%= leg_tab_row('#{legtext}', '#{sympath}') %>\n"
+              end
+              file << "</table>\n"
+            end
           end
         end
 
@@ -213,20 +216,22 @@ namespace :mapfile do
         tl.save!
       end
 
-      #Legend Template
-      mkdir_p File.dirname(topic.legend_file_auto)
-      MapfileImport.gen_topic_legend(topic)
+      unless dbonly
+        #Legend Template
+        mkdir_p File.dirname(topic.legend_file_auto)
+        MapfileImport.gen_topic_legend(topic)
 
-      #Info Header Template
-      #puts "Creating #{topic.info_header_file}"
-      touch(topic.info_header_file)
+        #Info Header Template
+        #puts "Creating #{topic.info_header_file}"
+        touch(topic.info_header_file)
 
-      #Topic icon
-      topic_icon = File.join(Rails.root, 'public', 'images', 'custom', topic.icon_fname)
-      unless File.exist?(topic_icon)
-        mkdir_p File.dirname(topic_icon)
-        cp(File.join(File.dirname(__FILE__), 'templates', 'themekl-default.gif'),
-          topic_icon)
+        #Topic icon
+        topic_icon = File.join(Rails.root, 'public', 'images', 'custom', topic.icon_fname)
+        unless File.exist?(topic_icon)
+          mkdir_p File.dirname(topic_icon)
+          cp(File.join(File.dirname(__FILE__), 'templates', 'themekl-default.gif'),
+            topic_icon)
+        end
       end
 
       unless @site.empty?
