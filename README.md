@@ -29,7 +29,7 @@ Mapfish Appserver comes with the following out-of-the box features:
 Documentation
 -------------
 
-For more documentation see the [github.io/gb_mapfish_appserver](http://pka.github.io/gb_mapfish_appserver/)
+For more documentation see the [mapfish-appserver.github.io](http://mapfish-appserver.github.io/)
 
 Authors and License
 -------------------
