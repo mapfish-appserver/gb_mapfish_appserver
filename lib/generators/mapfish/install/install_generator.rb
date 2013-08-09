@@ -37,7 +37,7 @@ module Mapfish
           ENV['DEFAULT_SITE'] = options["default-site-name"]
           ENV['ADMIN_PWD'] = SecureRandom.hex(4)
           begin
-            MapfishAppserver::Engine.load_seed
+            GbMapfishAppserver::Engine.load_seed
             puts "Generated user for administraton"
             puts "User: 'admin' - Password: '#{ENV['ADMIN_PWD']}'"
           rescue
