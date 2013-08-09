@@ -177,7 +177,7 @@ class PrintController < ApplicationController
   end
 
   def baseCmd
-    "java -cp #{File.dirname(__FILE__)}/../../lib/print/print-standalone.jar org.mapfish.print.ShellMapPrinter --config=#{@configFile}"
+    "java -cp #{GbMapfishPrint::PRINT_JAR} org.mapfish.print.ShellMapPrinter --config=#{@configFile}"
   end
 
   def cleanupTempFiles
