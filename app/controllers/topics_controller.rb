@@ -6,8 +6,12 @@ class TopicsController < ApplicationController
   }
 
   def index
-    params[:gbapp] = 'gbzh' if params[:gbapp] == 'default' #FIXME
     @app = Gbapplication.find_by_name(params[:gbapp]) if params[:gbapp]
+    if @app.nil?
+      logger.error "Gbapplication '#{params[:gbapp]}' not found"
+      head :bad_request
+      return
+    end
 
     respond_to do |format|
       format.json do

@@ -52,7 +52,7 @@ class AppsController < ApplicationController
 
     session[:map_ts] = Time.now # Used for checking access to non-public WMS
 
-    render :layout => false
+    render :action => @app, :layout => false
   end
 
 end
