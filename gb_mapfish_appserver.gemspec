@@ -24,6 +24,8 @@ Gem::Specification.new do |s|
   s.add_dependency "rails_admin", "0.0.5"
   s.add_dependency "fastercsv"# required for rails_admin and Ruby <= 1.8
 
+  s.add_dependency "GeoRuby", ">= 0.1.4" #used for reading envelope, e.g. in GeoModel#bbox
+
   s.add_dependency "rgeo", "0.3.20"
   s.add_dependency "rgeo-geojson", "0.2.1"
 

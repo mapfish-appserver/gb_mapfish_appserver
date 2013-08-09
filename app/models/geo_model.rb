@@ -41,7 +41,7 @@ class GeoModel < ActiveRecord::Base
   end
 
   def bbox
-    envelope = GeoRuby::SimpleFeatures::Geometry.from_hex_ewkb(extent).envelope
+    envelope = GeoRuby::SimpleFeatures::Geometry.from_hex_ewkb(extent).envelope #TODO: replace with rgeo
     [envelope.lower_corner.x, envelope.lower_corner.y, envelope.upper_corner.x, envelope.upper_corner.y]
   end
 
