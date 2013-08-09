@@ -12,6 +12,10 @@ class Layer < ActiveRecord::Base
   scope :defaultorder, order(:topic_name, :name)
   scope :unused, includes(:topics_layers).where('topics_layers.layer_id IS NULL')
 
+  #Namespace for run-time geo classes
+  module Geo
+  end
+
   # Enum for RailsAdmin form (causes exception in name search)
   #def sublayer_group_enum
   #  SublayerGroup.all.collect {|p| [ p.name, p.id ] }
