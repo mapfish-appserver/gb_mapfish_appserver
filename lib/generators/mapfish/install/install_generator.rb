@@ -56,6 +56,16 @@ module Mapfish
         end
       end
 
+      def add_search_rules_initializer
+        path = "#{Rails.root}/config/initializers/search_rules.rb"
+        if File.exists?(path)
+          puts "Skipping config/initializers/search_rules.rb creation, as file already exists!"
+        else
+          puts "Adding search_rules initializer (config/initializers/search_rules.rb)..."
+          template "search_rules.rb", path
+        end
+      end
+
       def rm_application_controller
         remove_file "#{Rails.root}/app/controllers/application_controller.rb"
       end

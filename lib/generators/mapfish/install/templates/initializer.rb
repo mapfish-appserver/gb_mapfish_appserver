@@ -23,8 +23,3 @@ DEFAULT_Y = 252000
 
 # regex for WMS parameters to detect if layer filter is used
 LAYER_FILTER_REGEX = /^filter_.+$/i
-
-#Load models in models/geo/ (why not automatically loaded?)
-Dir[File.join(Rails.root, "app", "models", "geo", "*.rb")].each do |geomodel|
-  require_dependency geomodel
-end

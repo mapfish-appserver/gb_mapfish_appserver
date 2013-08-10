@@ -1,0 +1,5 @@
+SEARCHRULES = {
+}
+
+LOCATERULES = {
+}
