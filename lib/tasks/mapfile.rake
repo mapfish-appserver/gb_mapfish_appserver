@@ -198,7 +198,7 @@ namespace :mapfile do
                   cp(symfile, File.join(legend_icon_path, filename))
                 end
                 sympath ="/images/custom/#{topic_name.downcase}/#{filename}"
-                legtext = lclass.name || lclass.getExpressionString
+                legtext = lclass.name.force_encoding('utf-8').encode || lclass.getExpressionString
                 file << "  <%= leg_tab_row('#{legtext}', '#{sympath}') %>\n"
               end
               file << "</table>\n"
