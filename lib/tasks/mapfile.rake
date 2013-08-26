@@ -38,7 +38,6 @@ namespace :mapfile do
     def initialize(mapfile, site)
       @map = MapObj.new(mapfile)
       @site = site || DEFAULT_SITE
-      @ic = Iconv.new('UTF-8','LATIN1')
     end
 
     def import(dbonly = false)
@@ -198,7 +197,8 @@ namespace :mapfile do
                   cp(symfile, File.join(legend_icon_path, filename))
                 end
                 sympath ="/images/custom/#{topic_name.downcase}/#{filename}"
-                legtext = lclass.name.force_encoding('utf-8').encode || lclass.getExpressionString
+                legtext = lclass.name || lclass.getExpressionString
+                legtext = legtext.force_encoding('UTF-8') if legtext.respond_to?(:force_encoding)
                 file << "  <%= leg_tab_row('#{legtext}', '#{sympath}') %>\n"
               end
               file << "</table>\n"
