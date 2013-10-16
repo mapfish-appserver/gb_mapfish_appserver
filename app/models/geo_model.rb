@@ -34,11 +34,34 @@ class GeoModel < ActiveRecord::Base
     "ST_Envelope(#{table_name}.#{geometry_column_name}) AS extent"
   end
 
-  def self.identify_filter(bbox, radius)
-    x1, y1, x2, y2 = bbox.split(',').collect(&:to_f)
-    center = "ST_GeomFromText('POINT(#{x1+(x2-x1)/2} #{y1+(y2-y1)/2})', #{srid})"
-    scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{radius})")
+  def self.area_field
+    "ST_Area(#{table_name}.#{geometry_column.name}) AS area"
   end
+
+  def self.identify_filter(searchgeo, radius)
+    if searchgeo[0..3] == "POLY"
+      logger.debug "*** POLY-query: #{searchgeo} ***"
+      polygon = "ST_GeomFromText('#{searchgeo}', #{srid})"
+      scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{polygon}, #{radius})")
+    else
+      if searchgeo.split(',').length == 3
+        logger.debug "*** CIRCLE-query: #{searchgeo} ***"
+        x1, y1, r  = searchgeo.split(',').collect(&:to_f)
+        center = "ST_GeomFromText('POINT(#{x1} #{y1})', #{srid})"
+        scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{r})")
+      else
+        logger.debug "*** BBOX-query: #{searchgeo} ***"
+        x1, y1, x2, y2 = searchgeo.split(',').collect(&:to_f)
+        center = "ST_GeomFromText('POINT(#{x1+(x2-x1)/2} #{y1+(y2-y1)/2})', #{srid})"
+        scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{radius})")
+      end
+    end
+  end
+
+  #Custom identify query
+  #def self.identify_query(bbox, radius)
+  #  scoped.select().where()....
+  #end
 
   def bbox
     envelope = GeoRuby::SimpleFeatures::Geometry.from_hex_ewkb(extent).envelope #TODO: replace with rgeo

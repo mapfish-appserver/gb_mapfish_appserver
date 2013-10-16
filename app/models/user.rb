@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
          :authentication_keys => [ :login ]
 
   validates :login, :presence => true, :uniqueness => true
-  validates_format_of :login, :with => /\A[A-Za-z][\w-]*\Z/
+  validates_format_of :login, :with => /\A[A-Za-z][.\w-]*\Z/
 
   attr_accessor :requested_group
 
@@ -28,8 +28,20 @@ class User < ActiveRecord::Base
     roles.any? { |role| role.name == rolename.to_s }
   end
 
+  def group_admin?(group)
+    has_role?(:admin) || group.admins.include?(self)
+  end
+
   def add_requested_group
     groups << Group.find(requested_group) if requested_group #with granted => false
+  end
+
+  def merge_app_infos(new_app_infos)
+    if app_infos.nil?
+      update_attribute(:app_infos, new_app_infos)
+    else
+      update_attribute(:app_infos, app_infos.merge(new_app_infos))
+    end
   end
 
 end

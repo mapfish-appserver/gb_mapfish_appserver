@@ -37,9 +37,60 @@ class TopicsController < ApplicationController
       topic = Topic.where(:name => query_topic['topic']).first
       authorize! :show, topic
       query_topic['topicobj'] = topic
-      query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'])
+      if params['bbox']
+        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'])
+      elsif params['rect']
+        x1, y1, x2, y2 = params['rect'].split(',').collect(&:to_f)
+        rect = "POLYGON((#{x1} #{y1}, #{x1} #{y2}, #{x2} #{y2}, #{x2} #{y1} ,#{x1} #{y1}))"
+        query_topic['results'] = topic.query(current_ability, query_topic, rect)
+      elsif params['circle']
+        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'])
+      elsif params['poly']
+        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'])
+      else
+        # problem
+      end
     end
-    render :layout => false
+    if params['bbox']
+      x1, y1, x2, y2 = (params['bbox']).split(',').collect(&:to_f)
+      @xx = (x1 + x2) / 2.0
+      @yy = (y1 + y2) / 2.0
+      @height = Dtm.getHeight(params['bbox'])
+    else
+      @xx = 0
+      @yy = 0
+      @height = 0
+    end
+
+    respond_to do |format|
+      format.html { render :layout => false }
+
+      format.json do
+         render :json => prepJson
+      end
+      format.jsonp do
+        render :json => prepJson, :callback => params[:callback]
+      end
+    end
+  end
+
+  def prepJson
+    query_results = {}
+    @query_topics.each do |query_topic|
+      layer_results = {}
+      query_topic['results'].each do |result|
+        layer_results[result[0][:name]] = result
+      end
+      query_results[query_topic['topicobj'].name] = layer_results
+    end
+
+    {  
+      :results => query_results,
+      :height => @height,
+      :x => @xx,
+      :y => @yy
+    }.to_json
+
   end
 
   def legend

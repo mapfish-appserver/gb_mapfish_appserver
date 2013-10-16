@@ -38,53 +38,55 @@ class Topic < ActiveRecord::Base
   #Structure for Topic selection
   def self.list(app, current_ability, zone, wms_host)
     topics = []
-    app.gbapplications_categories.includes(:category).each do |gbapplications_category|
-      category = gbapplications_category.category
-      unless category.nil?
-        category_topics = category.topics.accessible_by(current_ability).select(
-          'topics.*,categories_topics.sort AS categories_topics_sort')
-        topics += category_topics.collect do |topic|
-          subtopics = category_topics.select{|t| t.parent_id == topic.id}.collect do |subtopic|
+    ActiveRecord::Base.silence do
+      app.gbapplications_categories.includes(:category).each do |gbapplications_category|
+        category = gbapplications_category.category
+        unless category.nil?
+          category_topics = category.topics.accessible_by(current_ability).select(
+            'topics.*,categories_topics.sort AS categories_topics_sort')
+          topics += category_topics.collect do |topic|
+            subtopics = category_topics.select{|t| t.parent_id == topic.id}.collect do |subtopic|
+              {
+                "subtopicname" => subtopic.name,
+                "subtopictitle" => subtopic.sub_title,
+                "categories_topics_sort" => subtopic['categories_topics_sort'].to_i
+              }
+            end
+            categorysort = gbapplications_category.sort - 1000*gbapplications_category.gbapp_specific rescue nil
+
+            tools = Tool.accessible_tools(topic, current_ability)
+
+            keywords = topic.title.split + (topic.keywords || '').split(',').collect(&:strip)
+
             {
-              "subtopicname" => subtopic.name,
-              "subtopictitle" => subtopic.sub_title,
-              "categories_topics_sort" => subtopic['categories_topics_sort'].to_i
+              "name" => topic.name,
+              "title" => topic.title,
+              "print_title" => topic.print_title,
+              "icon" => "/images/custom/themekl-#{topic.name.downcase}.gif",
+              "organisationtitle" => topic.organisation.try(:title),
+              "organisationsort" => topic.organisation.try(:sort),
+              "categorytitle" => category.title,
+              "gbapp_specific" => gbapplications_category.gbapp_specific,
+              "categorysort" => categorysort,
+              "categories_topics_sort" => topic['categories_topics_sort'].to_i,
+              "keywords" => keywords,
+              "geoliongdd" => topic.geolion_gdd(zone),
+              "parent_id" => topic.parent_id,
+              "hassubtopics" => subtopics.size > 0,
+              "subtopics" => subtopics,
+              "missingpermission" => current_ability.cannot?(:show, topic),
+              "tools" => tools,
+              "ollayer_class" => topic.ollayer_class, #z.B. "WMS"
+              "ollayer_type" => topic.ollayer_args, #z.B. { name: "NASA Global Mosaic", url: "http://wms.jpl.nasa.gov/wms.cgi", params: {layers: "modis,global_mosaic"} }
+              "bg_topic" => topic.bg_topic.try(:name),
+              "overlay_topics" => topic.overlay_topics.collect(&:name),
+              "wms_url" => "#{wms_host}/#{topic.name}",
+              "background_layer" => topic.background_layer,
+              "main_layer" => topic.main_layer,
+              "overlay_layer" => topic.overlay_layer,
+              "minscale" => topic.minscale
             }
           end
-          categorysort = gbapplications_category.sort - 1000*gbapplications_category.gbapp_specific rescue nil
-
-          tools = Tool.accessible_tools(topic, current_ability)
-
-          keywords = topic.title.split + (topic.keywords || '').split(',').collect(&:strip)
-
-          {
-            "name" => topic.name,
-            "title" => topic.title,
-            "print_title" => topic.print_title,
-            "icon" => "/images/custom/themekl-#{topic.name.downcase}.gif",
-            "organisationtitle" => topic.organisation.try(:title),
-            "organisationsort" => topic.organisation.try(:sort),
-            "categorytitle" => category.title,
-            "gbapp_specific" => gbapplications_category.gbapp_specific,
-            "categorysort" => categorysort,
-            "categories_topics_sort" => topic['categories_topics_sort'].to_i,
-            "keywords" => keywords,
-            "geoliongdd" => topic.geolion_gdd(zone),
-            "parent_id" => topic.parent_id,
-            "hassubtopics" => subtopics.size > 0,
-            "subtopics" => subtopics,
-            "missingpermission" => current_ability.cannot?(:show, topic),
-            "tools" => tools,
-            "ollayer_class" => topic.ollayer_class, #z.B. "WMS"
-            "ollayer_type" => topic.ollayer_args, #z.B. { name: "NASA Global Mosaic", url: "http://wms.jpl.nasa.gov/wms.cgi", params: {layers: "modis,global_mosaic"} }
-            "bg_topic" => topic.bg_topic.try(:name),
-            "overlay_topics" => topic.overlay_topics.collect(&:name),
-            "wms_url" => "#{wms_host}/#{topic.name}",
-            "background_layer" => topic.background_layer,
-            "main_layer" => topic.main_layer,
-            "overlay_layer" => topic.overlay_layer,
-            "minscale" => topic.minscale
-          }
         end
       end
     end

@@ -3,7 +3,7 @@ class Tool
 
   ALL = ['LineMeasureTool', 'AreaMeasureTool',
     'PrevTool', 'NextTool', 'LinkTool', 'PrintTool',
-    'ExportTool'] #, 'EditTool'
+    'ExportTool', 'SelectTool'] #, 'EditTool'
 
   validates_presence_of :topic, :name
 

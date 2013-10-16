@@ -27,15 +27,6 @@
 		<%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i>
 		<%= f.password_field :current_password %>
 	</div>
-
-	<% current_user.groups.each do |group| %>
-		<% if File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', group.name)) %>
-		<fieldset>
-			<%#<legend><%= group.name % ></legend>%>
-		    <%= render :partial => "registrations/#{group.name}/app_infos", :locals => {:f => f} %>
-		</fieldset>
-		<% end %>
-	<% end %>
 	
 	<div class="row">
 		<%= f.submit "Update" %>

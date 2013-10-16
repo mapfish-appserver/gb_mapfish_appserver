@@ -25,12 +25,21 @@ class RegistrationsController < Devise::RegistrationsController
     super
   end
 
+  # show confirmation for registration of existing users
+  def confirm
+  end
+
   def login
     # redirected to here after AJAX login
     if user_signed_in?
       render :json => {
         :success => true,
-        :user => { :login => current_user.login, :email => current_user.email},
+        :user => {
+          :login => current_user.login,
+          :email => current_user.email,
+          :name => current_user.name,
+          :app_infos => current_user.app_infos
+        },
         :roles => current_roles.roles.collect(&:name)
       }
     else

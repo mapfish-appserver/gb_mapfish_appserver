@@ -45,13 +45,15 @@ class Permission < ActiveRecord::Base
     end
 
     def role_can?(role_id, action, resource)
-      can = if has_resource_list?
-        permitted_resources(role_id, action).include?(resource)
-      else
-        permitted?(resource, permissions(role_id, action))
+      ActiveRecord::Base.silence do
+        can = if has_resource_list?
+          permitted_resources(role_id, action).include?(resource)
+        else
+          permitted?(resource, permissions(role_id, action))
+        end
+        #Rails.logger.debug ">>>>>>>>>>>>>>>>>> role_can? role_id: #{role_id}, action: #{action}, resource: #{resource.name} -> #{can}"
+        can
       end
-      Rails.logger.debug ">>>>>>>>>>>>>>>>>> role_can? role_id: #{role_id}, action: #{action}, resource: #{resource.name} -> #{can}"
-      can
     end
 
     def roles_permissions(roles, action, resource = nil)
@@ -69,16 +71,18 @@ class Permission < ActiveRecord::Base
     end
 
     def add_ability(ability, roles)
-      actions.each do |action|
-        if has_resource_list?
-          ids = Rails.cache.fetch("permitted_resource_ids-#{action}-#{@resource_type_name}-roles-#{roles.collect(&:id).join(',')}") do
-            permitted_resource_ids(roles, action)
-          end
-          Rails.logger.debug ">>>>>>>>>>>> permitted_resource_ids with roles #{roles.collect(&:name).join(',')} can? #{action} #{@resource_type_name}: #{ids.inspect}"
-          ability.can(action, @klass, :id => ids) unless ids.empty?
-        else
-          ability.can(action, @klass) do |attr|
-            roles_can?(roles, action, attr)
+      ActiveRecord::Base.silence do
+        actions.each do |action|
+          if has_resource_list?
+            ids = Rails.cache.fetch("permitted_resource_ids-#{action}-#{@resource_type_name}-roles-#{roles.collect(&:id).join(',')}") do
+              permitted_resource_ids(roles, action)
+            end
+            #Rails.logger.debug ">>>>>>>>>>>> permitted_resource_ids with roles #{roles.collect(&:name).join(',')} can? #{action} #{@resource_type_name}: #{ids.inspect}"
+            ability.can(action, @klass, :id => ids) unless ids.empty?
+          else
+            ability.can(action, @klass) do |attr|
+              roles_can?(roles, action, attr)
+            end
           end
         end
       end
@@ -101,8 +105,8 @@ class Permission < ActiveRecord::Base
     #All resource permissionsfor a given role_id + action
     def permitted_resources(role_id, action)
       permissions = permissions(role_id, action)
-      resources.select do
-        |r| permitted?(r, permissions)
+      resources.select do |r|
+        permitted?(r, permissions)
       end
     end
 

@@ -23,10 +23,12 @@ class Layer < ActiveRecord::Base
 
   #Structure for Topic selection
   def self.list(ability, layer_type, topic_name)
-    topic = Topic.accessible_by(ability).includes(:layers).where(:name => topic_name).first
-    layers = topic.nil? ? [] : topic.layers.accessible_by(ability).all
-    topic_layers = topic.nil? ? [] : topic.topics_layers.select {|tl| layers.include?(tl.layer) }
-    wms_layer_list(ability, topic, topic_layers)
+    ActiveRecord::Base.silence do
+      topic = Topic.accessible_by(ability).includes(:layers).where(:name => topic_name).first
+      layers = topic.nil? ? [] : topic.layers.accessible_by(ability).all
+      topic_layers = topic.nil? ? [] : topic.topics_layers.select {|tl| layers.include?(tl.layer) }
+      wms_layer_list(ability, topic, topic_layers)
+    end
   end
 
   def self.wms_layer_list(ability, topic, topic_layers)
@@ -105,9 +107,7 @@ EOS
 
   def query_fields(ability)
     return '' if feature_class.nil?
-    area_field = "ST_Area(#{geometry_column.name}) AS area"
-    #TODO: measure -> Measure(geometry_column, lat, lon)
-    ([pkey]+ident_fields_for(ability)+[feature_class.extent_field, area_field]).join(',')
+    ([pkey]+ident_fields_for(ability)+[feature_class.extent_field, feature_class.area_field]).join(',')
   end
 
   def ident_fields_for(ability)
@@ -119,7 +119,7 @@ EOS
     allowed_fields
   end
 
-  def query(ability, query_topic, searchbbox)
+  def query(ability, query_topic, searchgeo)
     if feature_class
       begin
         #query_topic: {... customQueries: {<layername>: <query_method> }
@@ -132,11 +132,14 @@ EOS
         custom_query_method = query_topic['customQueries'][name] rescue nil
         logger.debug "******** #{feature_class} ***************************************************"
         features = if custom_query_method
-          logger.debug "Custom query on layer #{name}: #{query_topic.inspect}"
-          feature_class.send(custom_query_method, self, query_topic, searchbbox) 
+          logger.debug "*** Custom query on layer #{name}: #{query_topic.inspect}"
+          feature_class.send(custom_query_method, self, query_topic, searchgeo) 
+        elsif feature_class.respond_to?(:identify_query)
+          logger.debug "*** Custom identify_query on layer #{name}"
+          feature_class.identify_query(searchgeo, searchdistance)
         else
-          logger.debug "Identify on layer #{name} with query fields #{query_fields(ability)} at #{searchbbox.inspect}"
-          feature_class.identify_filter(searchbbox, searchdistance).select(query_fields(ability)).all
+          logger.debug "*** Identify on layer #{name} with query fields #{query_fields(ability)} at #{searchgeo.inspect}"
+          feature_class.identify_filter(searchgeo, searchdistance).select(query_fields(ability)).all
         end
         logger.debug "Number of features: #{features.size}"
         # calculate bbox of all features
@@ -150,7 +153,7 @@ EOS
         end
       rescue Exception => e
         features = "Table: <b>#{table}</b><br/>Exception: #{e}<br/>query fields: #{query_fields(ability)}<br/>db fields: #{feature_class.column_names.join(',')}<br/>missing: <font color='red'>#{(query_fields(ability).split(',') - feature_class.column_names).join(', ')}</font><br/><br/>"
-        logger.info "Identfy error on layer #{name} #{features}"
+        logger.info "Identify error on layer #{name} #{features}"
       end
       [self, features, bbox]
     else

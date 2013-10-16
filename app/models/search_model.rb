@@ -1,5 +1,4 @@
 class SearchModel < GeoModel
-  establish_connection(GEODB)
 
   LOCATE_MAX_COUNT = 50
 
@@ -23,6 +22,10 @@ class SearchModel < GeoModel
     nil
   end
 
+  def self.selection_scalerange
+    nil
+  end
+
   #Generic location search with one search field
   def self.layer_locate(layer, search_field, locations)
     feature_class = layer.feature_class
@@ -31,7 +34,7 @@ class SearchModel < GeoModel
 
   # "261,AU4998;261,AU4999" -> [["261","AU4998"],["261","AU4999"]]
   def self.search_locations(param)
-    locations = param.split(';')
+    locations = param.split('$')
     locations.collect {|l| l.split(',') }
   end
 

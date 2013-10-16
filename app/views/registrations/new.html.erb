@@ -1,4 +1,6 @@
-<h2>Sign up</h2>
+<h2>Registrierung für Gruppe <%= @group.name %></h2>
+
+<h3>Neue Registrierung</h3>
 
 <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
 	<%= devise_error_messages! %>
@@ -37,4 +39,18 @@
 	<div class="row">
 		<%= f.submit "Sign up", :class => 'big-submit' %>
 	</div>
+<% end %>
+
+<h3>Bestehendes Konto verwenden</h3>
+
+<%= form_for(@group, :method => :get, :url => register_groups_users_path) do |f| %>
+  <%= f.hidden_field :requested_group, :value => @group.id if @group %>
+
+  <% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
+    <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
+  <% end %>
+
+  <div class="row">
+    <%= f.submit "Anmelden", :class => 'big-submit' %>
+  </div>
 <% end %>

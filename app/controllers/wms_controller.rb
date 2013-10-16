@@ -4,7 +4,7 @@ require 'uri'
 class WmsController < ApplicationController
 
   def show
-    logger.info "----> WMS call with user '#{current_user.try(:login)}'"
+    logger.debug "----> WMS call with user '#{current_user.try(:login)}'"
 
     topic = Topic.where(:name => params[:service]).first
     add_sld_body(topic)

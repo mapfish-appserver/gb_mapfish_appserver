@@ -1,7 +1,8 @@
 class AppsController < ApplicationController
 
   def show
-    logger.debug "Site: '#{@zone}'"
+    @current_roles = current_roles.roles.collect(&:name)
+
     @topic_name = params['topic'] || DEFAULT_TOPIC[@zone].name
     @main_default_topic = DEFAULT_TOPIC[@zone].name
     @offlayers = params['offlayers'].blank? ? [] : params['offlayers'].split(',')
@@ -16,6 +17,9 @@ class AppsController < ApplicationController
     @selvalues = params['selvalues'].nil? ? [] : params['selvalues'].split('$')
 
     @redlining = params['redlining'].blank? ? nil : params['redlining']
+    @centermarker = params['centermarker']
+
+    @markers = params['markers']
 
     if params['locate']
       rule = LOCATERULES[params['locate']]
@@ -27,6 +31,7 @@ class AppsController < ApplicationController
           @seltopic = model.selection_topic
           @sellayer = model.selection_layer
           @selproperty = model.primary_key
+          @selscalerange = model.selection_scalerange
           search_locs = model.search_locations(params['locations'])
           model.locate(search_locs)
         else
@@ -34,6 +39,7 @@ class AppsController < ApplicationController
           @seltopic = @topic_name
           @sellayer = layer.name
           @selproperty = layer.feature_class.primary_key
+          @selscalerange = model.selection_scalerange
           search_locs = params['locations'].split(',')
           model.layer_locate(layer, rule.search_field, search_locs)
         end
@@ -43,6 +49,8 @@ class AppsController < ApplicationController
           #Selection
           @selbbox = model.bbox(features)
           @selvalues = features.collect {|f| f.send(model.primary_key) }
+        else
+          logger.info "no features found."
         end
       end
     end

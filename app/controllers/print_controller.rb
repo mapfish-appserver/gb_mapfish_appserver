@@ -91,6 +91,7 @@ class PrintController < ApplicationController
           if style["externalGraphic"]
             style["externalGraphic"].gsub!(LOCAL_GRAPHICS_HOST, '127.0.0.1')
             style["externalGraphic"].gsub!(/^https:/, 'http:')
+            style["externalGraphic"].gsub!(/^\//, 'http://127.0.0.1/')
           end
         end
       end
@@ -98,9 +99,12 @@ class PrintController < ApplicationController
     # remove inaccessible layers
     request.parameters["layers"] -= layers_to_delete
 
+    scales = []
     request.parameters["pages"].each do |page|
       # round center coordinates
       page["center"].collect! {|coord| (coord * 100.0).round / 100.0  }
+      # round extent coordinates
+      page["extent"].collect! {|coord| (coord * 100.0).round / 100.0  } unless page["extent"].nil?
       # add blank user strings if missing
       page["user_title"] = " " if page["user_title"].blank?
       page["user_comment"] = " " if page["user_comment"].blank?
@@ -109,15 +113,30 @@ class PrintController < ApplicationController
       # disclaimer
       topic = Topic.accessible_by(current_ability).where(:name => page["topic"]).first
       page["disclaimer"] = topic.nil? ? Topic.default_print_disclaimer : topic.print_disclaimer
+      # scale
+      scales << page["scale"]
     end
 
     logger.info request.parameters.to_yaml
 
-    if PRINT_URL.present?
+    if request.parameters["report"]
+      # JasperReport
+      call_report(request)
+    elsif PRINT_URL.present?
+      # MapFish
+      # FIXME: add custom scales to config file
       call_servlet(request)
     else
+      # MapFish
       #print-standalone
       tempId = SecureRandom.random_number(2**31)
+
+      # use temp config file with added custom scales
+      print_config = File.read(@configFile)
+      print_config.gsub!(/scales:/, "scales:\n#{ scales.collect {|s| "  - #{s.to_s}"}.join("\n") }")
+      config_file = TMP_PREFIX + tempId.to_s + "print.yaml"
+      File.open(config_file, "w") { |file| file << print_config }
+
       temp = TMP_PREFIX + tempId.to_s + TMP_SUFFIX
       cmd = baseCmd + " --output=" + temp
       result = ""
@@ -141,8 +160,8 @@ class PrintController < ApplicationController
 
   def show
     output_format = params[:format]
+    type = nil
     if OUTPUT_FORMATS.include?(output_format)
-      temp = TMP_PREFIX + params[:id] + ".#{output_format}"
       case output_format
       when "pdf"
         type = 'application/x-pdf'
@@ -155,7 +174,25 @@ class PrintController < ApplicationController
       when "gif"
         type = 'image/gif'
       end
+    end
+    is_mapfish_print_id = (params[:id] =~ /^[0-9]+$/)
+    if is_mapfish_print_id
+      temp = TMP_PREFIX + params[:id] + ".#{output_format}"
       send_file temp, :type => type, :disposition => 'attachment', :filename => params[:id] + ".#{output_format}"
+    else
+      params['report'] = params[:id]
+      result = create_report(request)
+      if result.nil?
+        render :nothing => true, :status => 500
+        return
+      end
+
+      if result.kind_of? Net::HTTPSuccess
+        send_data result.body, :type => type, :disposition => 'attachment', :filename => "#{params[:report]}.pdf"
+      else
+        logger.info "#{result.code}: #{result.body}"
+        render :nothing => true, :status => result.code
+      end
     end
   end
 
@@ -182,7 +219,7 @@ class PrintController < ApplicationController
 
   def cleanupTempFiles
     minTime = Time.now - TMP_PURGE_SECONDS;
-    OUTPUT_FORMATS.each do |output_format|
+    (OUTPUT_FORMATS + ["yaml"]).each do |output_format|
       Dir.glob(TMP_PREFIX + "*." + output_format).each do |path|
         if File.mtime(path) < minTime
           File.delete(path)
@@ -238,6 +275,61 @@ class PrintController < ApplicationController
         render :json=>{ 'getURL' => url_for(:action=>'show', :id=>temp_id) + temp_suffix }
       end
     end
+  end
+
+  # forward to JasperReport
+  def create_report(request)
+      report = request.parameters["report"]
+      call_params = {
+        :j_username => JASPER_USER,
+        :j_password => JASPER_PASSWORD
+      }
+      if request.parameters["pages"]
+        page = request.parameters["pages"].first
+        %w(scale rotation base_url user_title user_comment).each do |mfparam|
+          call_params[mfparam.upcase] = page[mfparam]
+        end
+        call_params[:MAP_BBOX] = page["extent"].join(',')
+        call_params[:MAP_CENTER] = page["center"].join(',')
+      end
+      request.parameters.each do |name, val|
+        if name =~ /^REP_/
+          call_params[name] = val
+        end
+      end
+      pdfid = Time.now.strftime("%Y%m%d%H%M%S") + rand.to_s[2..4] 
+      call_params['REP_PDFID'] = pdfid
+      report_url = "#{JASPER_URL}/#{report}.pdf?#{ call_params.to_param }"
+
+      begin
+        logger.info "Forward request: #{report_url}"
+        result = Net::HTTP.get_response(URI.parse(URI.decode(report_url)))
+        result["pdfid"] = pdfid
+     rescue => err
+        logger.info("#{err.class}: #{err.message}")
+        return nil
+      end
+     result
+  end
+
+  #Mapfish print comaptible report delivery
+  def call_report(request)
+      result = create_report(request)
+      if result.nil?
+        render :nothing => true, :status => 500
+        return
+      end
+
+      if result.kind_of? Net::HTTPSuccess
+        temp_id = SecureRandom.random_number(2**31)
+        temp = TMP_PREFIX + temp_id.to_s + TMP_SUFFIX
+        File.open(temp, 'w') {|f| f.write(result.body) }
+
+        render :json=>{ 'getURL' => url_for(:action=> 'show', :id=> temp_id) + ".pdf" }
+      else
+        logger.info "#{result.code}: #{result.body}"
+        render :nothing => true, :status => result.code
+      end
   end
 
 end

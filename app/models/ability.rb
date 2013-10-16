@@ -108,12 +108,23 @@ class Ability
         end
       else
         if layer == '*'
-          #resource_object.topics.detect { |t| t.name == topic }
-          resource_object.topics.where(:name => topic)
+          layer_topics_lookup[resource_object.id].include?(topic)
         else
-          #resource_object.name == layer && resource_object.topics.detect { |t| t.name == topic }
-          resource_object.name == layer && resource_object.topics.where(:name => topic)
+          resource_object.name == layer && layer_topics_lookup[resource_object.id].include?(topic)
         end
+      end
+    end
+
+    private
+
+    def layer_topics_lookup
+      #Build a lookup hash for all layer -> topic relations
+      @layer_topics ||= begin
+        layer_topics = resources.all.inject({}) {|hsh,l| hsh[l.id] = []; hsh }        
+        # layer_topics = resources.inject({}) {|hsh,l| hsh[l.id] = []; hsh }
+        all_topics = Topic.select("topics.id,topics.name,layers.id,layers.name").includes(:layers)
+        all_topics.each {|t| t.layers.each {|l| layer_topics[l.id] << t.name} }
+        layer_topics
       end
     end
 
@@ -264,8 +275,6 @@ class Ability
       can :dashboard
     else
       #can :change_password, User, _id => @user.id #TODO: allow edit password
-
-      Rails.logger.info "Loading permissions for roles #{roles.collect(&:name).join('+')}"
 
       #Topic permissions
       TopicResourceType.new.add_ability(self, roles)
