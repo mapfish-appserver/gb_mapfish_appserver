@@ -206,7 +206,7 @@ class PrintController < ApplicationController
     localwms = LOCAL_WMS.any? { |ref| uri.host =~ ref }
     if localwms
       topic = File.basename(uri.path)
-      localhost = (@zone == ZONE_INTRANET) ? '127.0.0.1' : 'localhost'
+      localhost = 'localhost' #TODO: site specific configuration
       out = "http://#{localhost}#{use_cgi ? MAPSERV_CGI_URL :  MAPSERV_URL}?MAP=#{MAPPATH}/#{@zone}/#{topic}.map&"
       #out = "http://#{localhost}:#{request.port}/wms/#{topic}"
     end
