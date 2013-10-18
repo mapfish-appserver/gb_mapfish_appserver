@@ -7,14 +7,14 @@ Gem::Specification.new do |s|
   s.version     = GbMapfishAppserver::VERSION
   s.authors     = ["Pirmin Kalberer"]
   s.email       = ["pka@sourcepole.ch"]
-  s.homepage    = ""
+  s.homepage    = "http://mapfish-appserver.github.io/"
   s.summary     = "Mapfish application server."
   s.description = "Mapfish Appserver is a framework for web mapping applications using OGC standards and the Mapfish protocol."
 
   s.files = Dir["{app,config,db,lib,vendor}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 3.2.13"
+  s.add_dependency "rails", "~> 3.2.15"
   s.add_dependency "json"
   s.add_dependency "acts_as_tree", "0.2.0"
 
