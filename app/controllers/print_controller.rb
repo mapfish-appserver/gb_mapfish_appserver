@@ -22,7 +22,7 @@ class PrintController < ApplicationController
     @configFile = "#{Rails.root}/config/print.yml"
   end
 
-  TMP_PREFIX = "/opt/geodata/tmp/mfPrintTempFile" #WARNING: use NFS for multi-node setups! TODO: external config
+  TMP_PREFIX = "#{PRINT_TMP_PATH}/mfPrintTempFile"
   TMP_SUFFIX = ".pdf"
   TMP_PURGE_SECONDS = 600
 

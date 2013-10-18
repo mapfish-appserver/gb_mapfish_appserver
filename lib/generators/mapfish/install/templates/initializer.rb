@@ -8,10 +8,16 @@ HOST_ZONE.default = SITE_DEFAULT
 #Hostnames in image links (e.g. identify symbol) which should be replaced by 127.0.0.1 for printing
 LOCAL_GRAPHICS_HOST = /<%= options["default-site-name"] %>/
 
+#Hosts in WMS URLs, which should be called via MAPSERV_URL for printing
 LOCAL_WMS = [
+  %r(^<%= options["default-site-name"] %>$),
   %r(^127.0.0.1$),
   %r(^localhost$),
 ]
+
+#Location for temporary mapfish-print files
+#NOTE: use a shared directory for multi-node setups (e.g. NFS)
+PRINT_TMP_PATH = "/tmp"
 
 DEFAULT_TOPIC = {
   SITE_DEFAULT => (Topic.first rescue nil) #Topic.where(:name => 'MainMap').first
