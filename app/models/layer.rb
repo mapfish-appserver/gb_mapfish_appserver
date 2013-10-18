@@ -114,7 +114,8 @@ EOS
     #attributes.accessible_by(ability) & fields
     #logger.info "************************* fields layer #{name}: #{ident_fields}"
     #logger.info "************************* roles: #{ability.roles.collect(&:name).join(',')}"
-    allowed_fields = ident_fields.split(',').select { |f| ability.can?(:show, attribute(f))  }
+    fields = (ident_fields || pkey).split(',')
+    allowed_fields = fields.select { |f| ability.can?(:show, attribute(f)) }
     #logger.info "************************* ident_fields layer #{name}: #{allowed_fields.inspect}"
     allowed_fields
   end
