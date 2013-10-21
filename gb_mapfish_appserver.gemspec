@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib,vendor}/**/*"] + ["LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", "~> 3.2.15"
+  s.add_dependency "rails", "~> 3.2.13"
   s.add_dependency "json"
   s.add_dependency "acts_as_tree", "0.2.0"
 
