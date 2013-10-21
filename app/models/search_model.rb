@@ -32,7 +32,8 @@ class SearchModel < GeoModel
     feature_class.where(search_field => locations).select(feature_class.primary_key).select(feature_class.extent_field).limit(LOCATE_MAX_COUNT).all
   end
 
-  # "261,AU4998;261,AU4999" -> [["261","AU4998"],["261","AU4999"]]
+  # "261,AU4998$261,AU4999" -> [["261","AU4998"],["261","AU4999"]]
+  # TODO: inconsistent with single field search -> "261|AU4998,261|AU4999" -> [["261","AU4998"],["261","AU4999"]]
   def self.search_locations(param)
     locations = param.split('$')
     locations.collect {|l| l.split(',') }

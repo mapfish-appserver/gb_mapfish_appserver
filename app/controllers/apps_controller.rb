@@ -28,6 +28,7 @@ class AppsController < ApplicationController
       else
         model = rule.model.constantize
         features = if rule.layer.nil?
+          #User defined model
           @seltopic = model.selection_topic
           @sellayer = model.selection_layer
           @selproperty = model.primary_key
@@ -35,6 +36,7 @@ class AppsController < ApplicationController
           search_locs = model.search_locations(params['locations'])
           model.locate(search_locs)
         else
+          #Generic SearchModel
           layer = Layer.find_by_name(rule.layer)
           @seltopic = @topic_name
           @sellayer = layer.name

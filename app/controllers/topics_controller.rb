@@ -55,7 +55,7 @@ class TopicsController < ApplicationController
       x1, y1, x2, y2 = (params['bbox']).split(',').collect(&:to_f)
       @xx = (x1 + x2) / 2.0
       @yy = (y1 + y2) / 2.0
-      @height = Dtm.getHeight(params['bbox'])
+      @height = 0 #Dtm.getHeight(params['bbox'])
     else
       @xx = 0
       @yy = 0
