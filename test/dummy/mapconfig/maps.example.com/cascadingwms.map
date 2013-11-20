@@ -86,8 +86,7 @@ MAP
 
     STATUS OFF
     TYPE POLYGON
-    CONNECTIONTYPE postgis
-    CONNECTION "dbname=geodb port=5435"
+    INCLUDE 'connection.inc'
     DATA "wkb_geometry FROM countries USING UNIQUE ogc_fid"
 
     CLASS

@@ -2,7 +2,6 @@ development:
   adapter: postgis
   encoding: unicode
   database: geodb #Production DB!
-  port: 5435
   pool: 5
 
 test:
