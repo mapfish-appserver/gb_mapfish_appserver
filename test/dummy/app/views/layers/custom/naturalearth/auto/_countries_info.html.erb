@@ -1,0 +1,38 @@
+<% if true %>
+<table class="infotab">
+  <tr>
+     <td class="tabtitle">Name</td>
+     <td class="tabtitle">Population</td>
+     <td class="tabtitle">Markieren</td>
+  </tr>
+  <% for feature in features do -%>
+    <tr>
+    <td class="tabcell"><%= feature.name %></td>
+    <td class="tabcell"><%= feature.pop_est %></td>
+    <td class="tabcell"><a class="markfeature" href="Javascript:showID('countries','ogc_fid','ogc_fid','','<%= feature.ogc_fid %>')" id="show-countries-<%= feature.ogc_fid %>" data-topic="naturalearth" data-layer="countries" data-pkey="ogc_fid" data-id="<%= feature.ogc_fid %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a></td>
+    </tr>
+  <% end %>
+</table>
+<% else %>
+<table class="infotab">
+  <tr><td class="tabtitle">Name</td>
+  <% for feature in features do -%>
+    <td class="tabcell"><%= feature.name %></td>
+  <% end %>
+  </tr>
+  <tr><td class="tabtitle">Population</td>
+  <% for feature in features do -%>
+    <td class="tabcell"><%= feature.pop_est %></td>
+  <% end %>
+  </tr>
+  <tr><td class="tabtitle">Markieren</td>
+  <% for feature in features do -%>
+    <td class="tabcell"><a class="markfeature" href="Javascript:showID('countries','ogc_fid','ogc_fid','','<%= feature.ogc_fid %>')" id="show-countries-<%= feature.ogc_fid %>" data-topic="naturalearth" data-layer="countries" data-pkey="ogc_fid" data-id="<%= feature.ogc_fid %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a></td>
+  <% end %>
+  </tr>
+</table>
+<% end %>
+<% if features.size > 1 -%>
+<% values = features.collect(&:ogc_fid).join('$') %>
+<a class="markfeature" href="Javascript:showID('countries','ogc_fid','ogc_fid','','<%= values %>')" id="show-countries-<%= values %>" data-topic="naturalearth" data-layer="countries" data-pkey="ogc_fid" data-id="<%= values %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a>
+<% end -%>

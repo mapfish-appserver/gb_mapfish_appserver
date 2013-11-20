@@ -1,0 +1,77 @@
+MAP
+  NAME naturalearth
+
+  WEB
+    METADATA
+      "wms_title"                  "Natural Earth"
+      "wms_onlineresource"         "http://wms.example.com/naturalearth"
+      "wms_srs"                    "EPSG:4326 EPSG:3857 EPSG:21781"
+      "wms_extent"                 "-180 -90 180 90"
+      "wms_feature_info_mime_type" "application/vnd.ogc.gml"
+      'ows_enable_request'    '*'
+      "wms_encoding"               "UTF-8"
+    END
+    IMAGEPATH '/tmp/'
+    IMAGEURL '/tmp/'
+  END
+
+  SIZE 512 512
+  MAXSIZE 8192
+  RESOLUTION 96
+  DEFRESOLUTION 96
+
+  UNITS DD
+  PROJECTION
+    "init=epsg:4326"
+  END
+
+  EXTENT -180 -90 180 90
+
+  IMAGECOLOR 255 255 255
+
+  #SYMBOLSET "../symbols/base.sym"
+  #FONTSET   "../fonts/fonts.txt"
+
+  IMAGETYPE png
+
+  OUTPUTFORMAT
+    NAME png
+    DRIVER "AGG/PNG"
+    IMAGEMODE rgb
+    FORMATOPTION "INTERLACE=OFF"
+  END
+
+  LAYER
+    NAME 'countries'
+    METADATA
+      "wms_title"                       "Countries"
+      "wms_srs"                         "EPSG:4326"
+      "wms_extent"                      "-180 -90 180 90"
+      "wms_include_items"               "name,pop_est"
+      "gml_include_items"               "name,pop_est"
+      "gml_name_alias"                  "Name"
+      "gml_pop_est_alias"               "Population"
+    END
+    TEMPLATE "blank.html"
+
+    EXTENT -180 -90 180 90
+    #MINSCALEDENOM 1
+    #MAXSCALEDENOM 500000.5
+
+    STATUS ON
+    TYPE POLYGON
+    CONNECTIONTYPE postgis
+    CONNECTION "dbname=geodb port=5435"
+    DATA "wkb_geometry FROM countries USING UNIQUE ogc_fid"
+
+    CLASS
+      NAME 'All countries'
+      STYLE
+        WIDTH 0.91 
+        OUTLINECOLOR 0 0 0
+        COLOR 0 255 0
+      END
+    END
+  END
+
+END
