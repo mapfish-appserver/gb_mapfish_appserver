@@ -52,6 +52,7 @@ namespace :mapfile do
       topic.save!
 
       topic.topics_layers.destroy_all
+      topic.categories_topics.destroy_all
       Layer.unused.destroy_all
       SublayerGroup.unused.destroy_all
 
@@ -102,6 +103,8 @@ namespace :mapfile do
           puts "Warning: Couldn't extract table name of layer '#{layer.name}' from data '#{mlayer.data}'" if layer.table.blank?
           mlayer.data =~ /UNIQUE (\w+)/i
           layer.pkey = $1 || 'oid'
+        elsif mlayer.connectiontype == MS_WMS
+          layer.table = mlayer.connection
         end
 
         #ident_fields+alias_fields
