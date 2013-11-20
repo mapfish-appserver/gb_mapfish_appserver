@@ -1,0 +1,12 @@
+<table class="infotab">
+  <tr>
+     <td class="tabtitle">Country</td>
+     <td class="tabtitle">sov_a3</td>
+  </tr>
+  <% for feature in features do -%>
+    <tr>
+    <td class="tabcell"><%= feature['ne:sovereignt'] %></td>
+    <td class="tabcell"><%= feature['ne:sov_a3'] %></td>
+    </tr>
+  <% end %>
+</table>

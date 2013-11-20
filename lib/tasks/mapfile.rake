@@ -104,7 +104,10 @@ namespace :mapfile do
           mlayer.data =~ /UNIQUE (\w+)/i
           layer.pkey = $1 || 'oid'
         elsif mlayer.connectiontype == MS_WMS
-          layer.table = mlayer.connection
+          url = mlayer.getWMSFeatureInfoURL(@map, 0, 0, 10, "text/xml")
+          #extract necessary params
+          params = url.split(/[?&]/).select {|p| k,v=p.split('='); %w(LAYERS QUERY_LAYERS VERSION SRS CRS).include?(k) || k =~ /^https?:/ }
+          layer.table = "#{params.shift}?#{params.join('&')}"
         end
 
         #ident_fields+alias_fields

@@ -1,3 +1,5 @@
+require 'hpricot'
+
 class Layer < ActiveRecord::Base
   has_many :topics_layers, :dependent => :destroy
   has_many :topics, :through => :topics_layers
@@ -121,7 +123,10 @@ EOS
   end
 
   def query(ability, query_topic, searchgeo)
-    if feature_class
+    if table =~ /^https?:/
+      features = get_feature_info(searchgeo)
+      [self, features, searchgeo.split(',')]
+    elsif feature_class
       begin
         #query_topic: {... customQueries: {<layername>: <query_method> }
         #e.g.
@@ -161,6 +166,58 @@ EOS
       logger.warn "Table for layer #{name} not found. (Table name: '#{table}')"
       nil
     end
+  end
+
+  def get_feature_info(searchgeo)
+    logger.debug searchgeo.inspect
+    x1, y1, x2, y2 = searchgeo.split(',').collect(&:to_f)
+    params = [
+      "FEATURE_COUNT=10",
+      "INFO_FORMAT=application/vnd.ogc.gml", #text/xml
+      "REQUEST=GetFeatureInfo",
+      "SERVICE=WMS",
+      "BBOX=#{x1},#{y1},#{x1*1.01},#{y1*1.01}",
+      "WIDTH=10",
+      "HEIGHT=10",
+      "X=0",
+      "Y=0"
+    ]
+    url = "#{table}&#{params.join('&')}"
+    logger.debug "*** Cascaded GetFeatureInfo: #{url}"
+    uri = URI.parse(url)
+    http = Net::HTTP::new(uri.host, uri.port)
+    response = http.request(Net::HTTP::Get.new(uri.request_uri))
+    #logger.debug response.body
+    info_features = parse_ogc_gml(response.body)
+    features = info_features.collect {|f| f[:attributes] }
+    logger.debug features.to_s
+    logger.debug "Number of features: #{features.size}"
+    features
+  end
+
+  def parse_ogc_gml(xml)
+    info_features = []
+    fields = ident_fields.split(',')
+    doc = Hpricot::XML(xml)
+
+    (doc/"//gml:featureMember").each do |fm|
+      fm.children.each do |feature|
+        info_feature = {}
+
+        # attributes
+        attributes = {}
+        feature.containers.each do |c|
+          if fields.include?(c.name)
+            attributes[c.name] = c.inner_text
+          end
+        end
+        info_feature[:attributes] = attributes
+
+        info_features << info_feature
+      end
+    end
+
+    info_features
   end
 
   # Partial for identify result

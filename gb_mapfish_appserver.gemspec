@@ -29,6 +29,8 @@ Gem::Specification.new do |s|
   s.add_dependency "rgeo", "0.3.20"
   s.add_dependency "rgeo-geojson", "0.2.1"
 
+  s.add_dependency "hpricot" # Cascaded WMS FeatureInfo parsing
+
   s.add_dependency "pg", "0.14.0"
   s.add_dependency "activerecord-postgis-adapter", "0.4.1"
 end
