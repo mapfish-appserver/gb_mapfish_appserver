@@ -171,16 +171,18 @@ EOS
   def get_feature_info(searchgeo)
     logger.debug searchgeo.inspect
     x1, y1, x2, y2 = searchgeo.split(',').collect(&:to_f)
+    #Since we get the query coordinates and not pixels, we have to assume a certain scale
+    dist = (x1*0.01).abs
     params = [
       "FEATURE_COUNT=10",
       "INFO_FORMAT=application/vnd.ogc.gml", #text/xml
       "REQUEST=GetFeatureInfo",
       "SERVICE=WMS",
-      "BBOX=#{x1},#{y1},#{x1*1.01},#{y1*1.01}",
-      "WIDTH=10",
-      "HEIGHT=10",
+      "BBOX=#{x1},#{y1},#{x1+dist},#{y1+dist}",
+      "WIDTH=100",
+      "HEIGHT=100",
       "X=0",
-      "Y=0"
+      "Y=99"
     ]
     url = "#{table}&#{params.join('&')}"
     logger.debug "*** Cascaded GetFeatureInfo: #{url}"

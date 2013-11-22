@@ -50,10 +50,10 @@ MAP
       "wms_format"                      "image/png"
       "wms_srs"                         "EPSG:4326 EPSG:21781"
       "wms_extent"                      "-180 -90 180 90"
-      "wms_include_items"               "sovereignt,sov_a3"
-      "gml_include_items"               "sovereignt,sov_a3"
-      "gml_sovereignt_alias"            "Country"
-      "gml_sov_a3alias"                 "Short"
+      "wms_include_items"               "ne:sovereignt,ne:sov_a3"
+      "gml_include_items"               "ne:sovereignt,ne:sov_a3"
+      "gml_ne:sovereignt_alias"         "Country"
+      "gml_ne:sov_a3_alias"             "Short"
     END
     TEMPLATE "blank.html"
 
