@@ -143,8 +143,9 @@ namespace :mapfile do
           #Info & Legend
           mkdir_p File.dirname(layer.info_file_auto)
 
+          display_only = (mlayer.type == MS_LAYER_RASTER && mlayer.connectiontype != MS_WMS) || mlayer.type == MS_LAYER_ANNOTATION
           if queryable
-            if mlayer.type == MS_LAYER_RASTER || mlayer.type == MS_LAYER_ANNOTATION
+            if display_only
               puts "Warning: Raster/Anntotation layer '#{layer.name}' is queryable (TEMPLATE #{mlayer.template})"
             end
             #puts "Creating #{layer.info_file_auto}"
@@ -166,7 +167,7 @@ namespace :mapfile do
           # Layer legend
           legend_icon_path = File.join(Rails.root, 'public', 'images', 'custom', topic_name.downcase)
           mkdir_p legend_icon_path
-          if mlayer.type != MS_LAYER_RASTER && mlayer.type != MS_LAYER_ANNOTATION
+          if !display_only
             #puts "Creating #{layer.legend_file_auto}"
             File.open(layer.legend_file_auto, 'w') do |file|
               file << "<table class='legtab'>\n"
