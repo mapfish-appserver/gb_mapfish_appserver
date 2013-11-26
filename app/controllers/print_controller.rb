@@ -134,11 +134,11 @@ class PrintController < ApplicationController
       # use temp config file with added custom scales
       print_config = File.read(@configFile)
       print_config.gsub!(/scales:/, "scales:\n#{ scales.collect {|s| "  - #{s.to_s}"}.join("\n") }")
-      config_file = TMP_PREFIX + tempId.to_s + "print.yaml"
+      config_file = TMP_PREFIX + tempId.to_s + "print.yml"
       File.open(config_file, "w") { |file| file << print_config }
 
       temp = TMP_PREFIX + tempId.to_s + TMP_SUFFIX
-      cmd = baseCmd + " --output=" + temp
+      cmd = baseCmd(config_file) + " --output=" + temp
       result = ""
       errors = ""
       status = POpen4::popen4(cmd) do |stdout, stderr, stdin, pid|
@@ -213,8 +213,9 @@ class PrintController < ApplicationController
     out
   end
 
-  def baseCmd
-    "java -cp #{GbMapfishPrint::PRINT_JAR} org.mapfish.print.ShellMapPrinter --config=#{@configFile}"
+  def baseCmd(config_file = nil)
+    config = config_file || @configFile
+    "java -cp #{GbMapfishPrint::PRINT_JAR} org.mapfish.print.ShellMapPrinter --config=#{config}"
   end
 
   def cleanupTempFiles
