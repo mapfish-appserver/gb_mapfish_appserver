@@ -9,14 +9,12 @@
 <% aliases.each_with_index do |title, i| %>
      <td class="tabtitle"><%= title %></td>
 <% end %>
-     <td class="tabtitle">Markieren</td>
   </tr>
   <%% for feature in features do -%>
     <tr>
 <% fields.each_with_index do |field, i| %>
     <td class="tabcell"><%%= feature.<%= field %> %></td>
 <% end %>
-    <td class="tabcell"><a class="markfeature" href="Javascript:showID('<%= layer.name %>','<%= layer.pkey %>','<%= layer.pkey %>','','<%%= feature.<%= layer.pkey %> %>')" id="show-<%= layer.name %>-<%%= feature.<%= layer.pkey %> %>" data-topic="<%= topic_name %>" data-layer="<%= layer.name %>" data-pkey="<%= layer.pkey %>" data-id="<%%= feature.<%= layer.pkey %> %>" data-minx="<%%= feature.bbox[0] %>" data-miny="<%%= feature.bbox[1] %>" data-maxx="<%%= feature.bbox[2] %>" data-maxy="<%%= feature.bbox[3] %>">In Karte markieren</a></td>
     </tr>
   <%% end %>
 </table>
@@ -29,15 +27,6 @@
   <%% end %>
   </tr>
 <% end %>
-  <tr><td class="tabtitle">Markieren</td>
-  <%% for feature in features do -%>
-    <td class="tabcell"><a class="markfeature" href="Javascript:showID('<%= layer.name %>','<%= layer.pkey %>','<%= layer.pkey %>','','<%%= feature.<%= layer.pkey %> %>')" id="show-<%= layer.name %>-<%%= feature.<%= layer.pkey %> %>" data-topic="<%= topic_name %>" data-layer="<%= layer.name %>" data-pkey="<%= layer.pkey %>" data-id="<%%= feature.<%= layer.pkey %> %>" data-minx="<%%= feature.bbox[0] %>" data-miny="<%%= feature.bbox[1] %>" data-maxx="<%%= feature.bbox[2] %>" data-maxy="<%%= feature.bbox[3] %>">In Karte markieren</a></td>
-  <%% end %>
-  </tr>
 </table>
 <%% end %>
 <% end %>
-<%% if features.size > 1 -%>
-<%% values = features.collect(&:<%= layer.pkey %>).join('$') %>
-<a class="markfeature" href="Javascript:showID('<%= layer.name %>','<%= layer.pkey %>','<%= layer.pkey %>','','<%%= values %>')" id="show-<%= layer.name %>-<%%= values %>" data-topic="<%= topic_name %>" data-layer="<%= layer.name %>" data-pkey="<%= layer.pkey %>" data-id="<%%= values %>" data-minx="<%%= feature.bbox[0] %>" data-miny="<%%= feature.bbox[1] %>" data-maxx="<%%= feature.bbox[2] %>" data-maxy="<%%= feature.bbox[3] %>">In Karte markieren</a>
-<%% end -%>

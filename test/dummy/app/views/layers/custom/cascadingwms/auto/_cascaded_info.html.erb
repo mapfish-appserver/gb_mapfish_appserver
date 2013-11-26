@@ -3,13 +3,11 @@
   <tr>
      <td class="tabtitle">Country</td>
      <td class="tabtitle">Short</td>
-     <td class="tabtitle">Markieren</td>
   </tr>
   <% for feature in features do -%>
     <tr>
     <td class="tabcell"><%= feature.ne:sovereignt %></td>
     <td class="tabcell"><%= feature.ne:sov_a3 %></td>
-    <td class="tabcell"><a class="markfeature" href="Javascript:showID('cascaded','','','','<%= feature. %>')" id="show-cascaded-<%= feature. %>" data-topic="cascadingwms" data-layer="cascaded" data-pkey="" data-id="<%= feature. %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a></td>
     </tr>
   <% end %>
 </table>
@@ -25,14 +23,5 @@
     <td class="tabcell"><%= feature.ne:sov_a3 %></td>
   <% end %>
   </tr>
-  <tr><td class="tabtitle">Markieren</td>
-  <% for feature in features do -%>
-    <td class="tabcell"><a class="markfeature" href="Javascript:showID('cascaded','','','','<%= feature. %>')" id="show-cascaded-<%= feature. %>" data-topic="cascadingwms" data-layer="cascaded" data-pkey="" data-id="<%= feature. %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a></td>
-  <% end %>
-  </tr>
 </table>
 <% end %>
-<% if features.size > 1 -%>
-<% values = features.collect(&:).join('$') %>
-<a class="markfeature" href="Javascript:showID('cascaded','','','','<%= values %>')" id="show-cascaded-<%= values %>" data-topic="cascadingwms" data-layer="cascaded" data-pkey="" data-id="<%= values %>" data-minx="<%= feature.bbox[0] %>" data-miny="<%= feature.bbox[1] %>" data-maxx="<%= feature.bbox[2] %>" data-maxy="<%= feature.bbox[3] %>">In Karte markieren</a>
-<% end -%>
