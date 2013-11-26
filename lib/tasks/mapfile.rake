@@ -157,7 +157,7 @@ namespace :mapfile do
               layer.alias_fields.split(',')
             end
             infotab_template = "_infotable_auto"
-            template = File.open(File.join(File.dirname(__FILE__), 'templates', "#{infotab_template}.html.erb")).read
+            template = File.open(File.join(Rails.root, 'lib', 'tasks', 'templates', "#{infotab_template}.html.erb")).read
             template = ERB.new(template, nil, '<>')
             File.open(layer.info_file_auto, 'w') do |file|
               file << template.result(binding)
