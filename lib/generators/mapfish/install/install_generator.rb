@@ -100,6 +100,10 @@ PRINT_URL = nil #'http://localhost:8080/print-servlet-1.1/pdf/print.pdf'
         directory "../../../../../lib/tasks/templates", "lib/tasks/templates", :verbose => false
       end
 
+      def add_query_header_template
+        create_file "app/views/topisc/_query_header.html.erb", ""
+      end
+
     end
   end
 end

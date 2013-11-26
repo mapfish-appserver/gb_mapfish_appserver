@@ -127,6 +127,20 @@ class Topic < ActiveRecord::Base
     end
   end
 
+  #header template
+  def self.query_header_fname
+    "_query_header.html.erb"
+  end
+
+  def self.query_header_file
+    File.join(Rails.root, 'app', 'views', 'topics', query_header_fname)
+  end
+
+  def self.query_header
+    @query_header ||= File.exist?(query_header_file) ? "topics/#{query_header_fname[1..-10]}" : nil
+  end
+
+  #header template for each topic
   def info_header_fname
     "_#{name.downcase}_info.html.erb"
   end

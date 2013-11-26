@@ -1,4 +1,4 @@
-<div class='infokoord'><b>Informationen</b> f&uuml;r ausgew&auml;hlte Themen bei Koordinate <span id='infoxy'></span>:</div>
+<%= render :partial => Topic.query_header if Topic.query_header %>
 <% @query_topics.each do |query_topic| %>
   <% @topic = query_topic['topicobj'] %>
   <% @results = query_topic['results'] %>
