@@ -51,13 +51,13 @@ namespace :mapfile do
       topic.main_layer = true if topic.main_layer.nil?
       topic.save!
 
-      topic.topics_layers.destroy_all
-      topic.categories_topics.destroy_all
       Layer.unused.destroy_all
       SublayerGroup.unused.destroy_all
 
       category = @map.web.metadata['gb_category'] || 'Uncategorized'
-      topic.categories << Category.find_or_create_by_title(category)
+      if topic.categories.empty?
+        topic.categories << Category.find_or_create_by_title(category)
+      end
 
       sublayer_groups = {}
 
@@ -214,12 +214,15 @@ namespace :mapfile do
         end
 
         #topics_layers
-        tl = topic.topics_layers.build(:layer => layer)
+        tl = topic.topics_layers.where(:layer_id => layer).first || topic.topics_layers.build(:layer => layer)
         tl.queryable = queryable
         tl.visini = mlayer.status == MS_ON
         tl.wms_sort = layerno
-        tl.leg_sort = mlayer.metadata['gb_leg_sort'] || layerno*100
-        tl.toc_sort = mlayer.metadata['gb_toc_sort'] || layerno*100
+        #Do now overwrite values changed manually in the DB:
+        tl.leg_sort = mlayer.metadata['gb_leg_sort'] if mlayer.metadata['gb_leg_sort']
+        tl.toc_sort = mlayer.metadata['gb_toc_sort'] if mlayer.metadata['gb_toc_sort']
+        tl.leg_sort ||= layerno*100
+        tl.toc_sort ||= layerno*100
         tl.save!
       end
 
