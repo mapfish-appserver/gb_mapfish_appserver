@@ -181,13 +181,13 @@ EOS
       "BBOX=#{x1},#{y1},#{x1+dist},#{y1+dist}",
       "WIDTH=100",
       "HEIGHT=100",
-      "X=0",
-      "Y=99"
+      "X=0", "I=0",
+      "Y=99", "J=99"
     ]
     url = "#{table}&#{params.join('&')}"
     logger.debug "*** Cascaded GetFeatureInfo: #{url}"
     uri = URI.parse(url)
-    http = Net::HTTP::new(uri.host, uri.port)
+    http = Net::HTTP::new(uri.host, uri.port, nil, CASCADED_PROXY_PORT, CASCADED_PROXY_USER, CASCADED_PROXY_PASS)
     response = http.request(Net::HTTP::Get.new(uri.request_uri))
     #logger.debug response.body
     info_features = parse_ogc_gml(response.body)

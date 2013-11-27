@@ -29,3 +29,10 @@ DEFAULT_Y = 252000
 
 # regex for WMS parameters to detect if layer filter is used
 LAYER_FILTER_REGEX = /^filter_.+$/i
+
+# Proxy for cascaded WMS Feature requests
+# See also http://www.ruby-doc.org/stdlib-1.9.3/libdoc/net/http/rdoc/Net/HTTP.html#method-c-Proxy
+CASCADED_PROXY_ADDR = nil #Ruby 2.0 supports :ENV for using http_proxy environment variable
+CASCADED_PROXY_PORT = nil
+CASCADED_PROXY_USER = nil
+CASCADED_PROXY_PASS = nil
