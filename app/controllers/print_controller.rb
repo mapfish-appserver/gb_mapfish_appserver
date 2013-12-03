@@ -117,6 +117,9 @@ class PrintController < ApplicationController
       scales << page["scale"]
     end
 
+    outputFormat = request.parameters["outputFormat"]
+    request.parameters["outputFormat"] = 'pdf'
+
     logger.info request.parameters.to_yaml
 
     if request.parameters["report"]
@@ -153,7 +156,7 @@ class PrintController < ApplicationController
       if status.nil? || status.exitstatus != 0
         raise JavaError.new(cmd, errors)
       else
-        convert_and_send_link(temp, tempId, request.parameters["dpi"], request.parameters["outputFormat"])
+        convert_and_send_link(temp, tempId, request.parameters["dpi"], outputFormat)
       end
     end
   end
