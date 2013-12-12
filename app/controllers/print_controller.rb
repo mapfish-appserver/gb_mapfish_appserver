@@ -223,7 +223,7 @@ class PrintController < ApplicationController
 
   def cleanupTempFiles
     minTime = Time.now - TMP_PURGE_SECONDS;
-    (OUTPUT_FORMATS + ["yaml"]).each do |output_format|
+    (OUTPUT_FORMATS + ["yml"]).each do |output_format|
       Dir.glob(TMP_PREFIX + "*." + output_format).each do |path|
         if File.mtime(path) < minTime
           File.delete(path)
