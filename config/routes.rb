@@ -32,7 +32,7 @@ Rails.application.routes.draw do
   match 'services/:rule' => 'search#soap', :as => :services
 
   match 'wms/access/:service' => 'wms#access', :as => :wms_access
-  match 'wms/:service' => 'wms#show', :as => :wms
+  match 'wms/:service' => 'wms#show', :via => [:get, :post], :as => :wms
 
   match 'wfs/access/:service' => 'wfs#access', :as => :wfs_access
   match 'wfs/:service' => 'wfs#show', :as => :wfs

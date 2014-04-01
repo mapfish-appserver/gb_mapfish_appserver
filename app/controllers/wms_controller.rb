@@ -10,7 +10,7 @@ class WmsController < ApplicationController
     add_sld_body(topic)
 
     #Send redirect for public services
-    if public?(params[:service], host_zone(request.host))
+    if request.get? && public?(params[:service], host_zone(request.host))
       url, path = mapserv_request_url(request)
       #expires_in 2.minutes, :public => true #FIXME: cache_path "wms-public-#{params[:service]}-#{host_zone(request.host)}"
       redirect_to "#{url.scheme}://#{url.host}#{path}"
@@ -73,9 +73,14 @@ class WmsController < ApplicationController
       url = URI.parse(URI.decode("#{request.protocol}#{request.host}#{wms_url}"))
     end
 
-    path = "#{url.path}?"
-    path << url.query << '&' if url.query
-    path << request.query_string
+    path = if request.get?
+      path = "#{url.path}?"
+      path << url.query << '&' if url.query
+      path << request.query_string
+      path
+    else
+      url.path
+    end
     [url, path]
   end
 
@@ -83,11 +88,18 @@ class WmsController < ApplicationController
     url, path = mapserv_request_url(request)
     logger.info "Forward request: #{url.scheme}://#{url.host}#{path}"
 
-    if request.get? then
+    if request.get?
       result = Net::HTTP.get_response(url.host, path, url.port)
       send_data result.body, :status => result.code, :type => result.content_type, :disposition => 'inline'
     else
-      render :nothing => true
+      #POST
+      http = Net::HTTP.new(url.host, url.port)
+      req = Net::HTTP::Post.new(path)
+      post_params = request.query_string.split(/&|=/)
+      post_params += url.query.split(/&|=/) if url.query
+      req.set_form_data(Hash[*post_params])
+      result = http.request(req)
+      send_data result.body, :status => result.code, :type => result.content_type, :disposition => 'inline'
     end
   end
 
