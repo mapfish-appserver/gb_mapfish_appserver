@@ -95,9 +95,13 @@ class WmsController < ApplicationController
       #POST
       http = Net::HTTP.new(url.host, url.port)
       req = Net::HTTP::Post.new(path)
-      post_params = request.query_string.split(/&|=/)
+      post_params = []
       post_params += url.query.split(/&|=/) if url.query
-      req.set_form_data(Hash[*post_params])
+      data = Hash[*post_params]
+      data.merge!(params)
+      data.merge!('SLD_BODY' => request.query_string.split(/SLD_BODY=/)[-1]) if request.query_string.include?('SLD_BODY=')
+      logger.info "WMS POST with #{data.inspect}"
+      req.set_form_data(data)
       result = http.request(req)
       send_data result.body, :status => result.code, :type => result.content_type, :disposition => 'inline'
     end
