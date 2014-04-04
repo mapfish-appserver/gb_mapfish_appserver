@@ -99,7 +99,7 @@ class WmsController < ApplicationController
       post_params += url.query.split(/&|=/) if url.query
       data = Hash[*post_params]
       data.merge!(params)
-      data.merge!('SLD_BODY' => request.query_string.split(/SLD_BODY=/)[-1]) if request.query_string.include?('SLD_BODY=')
+      data.merge!('SLD_BODY' => URI.unescape(request.query_string.split(/SLD_BODY=/)[-1])) if request.query_string.include?('SLD_BODY=')
       logger.info "WMS POST with #{data.inspect}"
       req.set_form_data(data)
       result = http.request(req)
@@ -114,11 +114,12 @@ class WmsController < ApplicationController
         logger.info "Selection layer '#{params[:SELECTION][:LAYER]}' not found in topic '#{topic.name}'"
         return
       end
-      #Remove non-WMS params
-      request.env["QUERY_STRING"].gsub!(/&SELECTION.+?(?=&)/, '')
       # add serverside SLD for selection
       request.env["QUERY_STRING"] += "&SLD_BODY=" + URI.escape(
         sld_selection(layer, params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(',')))
+      # Remove non-WMS params
+      request.env["QUERY_STRING"].gsub!(/&SELECTION.+?(?=&)/, '')
+      params.delete[:SELECTION]
     end
   end
 
