@@ -4,12 +4,19 @@ class AppsController < ApplicationController
     @current_roles = current_roles.roles.collect(&:name)
 
     @topic_name = params['topic'] || DEFAULT_TOPIC[@zone].name
+
+    @back_topic_name = params['back'].nil? ? nil : params['back']
+    @over_topic_name = params['over'].blank? ? '[]' : params['over'].split(',').to_json
+
     @main_default_topic = DEFAULT_TOPIC[@zone].name
     @offlayers = params['offlayers'].blank? ? [] : params['offlayers'].split(',')
 
     @scale = params['scale'].nil? ? DEFAULT_SCALE : params['scale'].to_i
     @x = params['x'].nil? ? DEFAULT_X : params['x'].to_f
     @y = params['y'].nil? ? DEFAULT_Y : params['y'].to_f
+
+    @zoom = params['zoom'].nil? ? DEFAULT_ZOOM : params['zoom'].to_i # for mobile
+    @gbapp = params['gbapp'].nil? ? 'default' : params['gbapp'] # for mobile
 
     @seltopic = params['seltopic']
     @sellayer = params['sellayer']

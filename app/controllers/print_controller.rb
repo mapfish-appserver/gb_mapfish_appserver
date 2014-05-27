@@ -78,6 +78,11 @@ class PrintController < ApplicationController
             layer["customParams"].delete("DPI")
             layer["customParams"]["map_resolution"] = request.parameters["dpi"]
           end
+
+          topic = Topic.find_by_name(topic_name)
+          add_sld_body(topic, layer)
+          add_filter(topic, layer)
+
           # For permission check in WMS controller: pass session as WMS request parameter
           #layer["customParams"]["session"] =
         else
@@ -195,6 +200,41 @@ class PrintController < ApplicationController
       else
         logger.info "#{result.code}: #{result.body}"
         render :nothing => true, :status => result.code
+      end
+    end
+  end
+
+  def add_sld_body(topic, layer)
+    # add SLD for selection
+    unless layer["customParams"]["SELECTION[LAYER]"].blank?
+      sld_body = Wms.sld_selection(topic,
+        layer["customParams"]["SELECTION[LAYER]"],
+        layer["customParams"]["SELECTION[PROPERTY]"],
+        layer["customParams"]["SELECTION[VALUES]"].split(',')
+      )
+
+      unless sld_body.nil?
+        # add serverside SLD for selection
+        layer["customParams"]["SLD_BODY"] = sld_body
+      else
+        logger.info "Selection layer '#{layer["customParams"]["SELECTION[LAYER]"]}' not found in topic '#{topic.name}'"
+      end
+
+      # remove non-WMS params
+      layer["customParams"].delete("SELECTION[LAYER]")
+      layer["customParams"].delete("SELECTION[PROPERTY]")
+      layer["customParams"].delete("SELECTION[VALUES]")
+    end
+  end
+
+  def add_filter(topic, layer)
+    filters = Wms.access_filters(current_ability, current_user, topic, layer["layers"])
+    if filters.any?
+      filters.each do |key, value|
+        # remove existing filter
+        layer["customParams"].delete(key)
+        # add serverside filter
+        layer["customParams"][key] = value
       end
     end
   end

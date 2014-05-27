@@ -4,7 +4,7 @@ require 'uri'
 class WfsController < ApplicationController
 
   def show
-    logger.info "----> WMS call with user '#{current_user.try(:login)}'"
+    logger.info "----> WFS call with user '#{current_user.try(:login)}'"
 
     #Send redirect for public services
     #if public?(params[:service], host_zone(request.host))
@@ -14,16 +14,17 @@ class WfsController < ApplicationController
     #  return
     #end
 
-    topic = Topic.where(:name => params[:service]).first
-    topic_accessible = topic && can?(:show, topic)
-    wfs_accessible = can?(:show, Wfs.new(params[:service]))
-    if !topic_accessible && !wfs_accessible
-      logger.info "----> Topic/WFS '#{params[:service]}' not accessible with roles #{current_roles.roles.collect(&:name).join('+')}!"
-      log_user_permissions(:show, topic) if topic
-      log_user_permissions(:show, Wfs.new(params[:service]))
+    topic_name = params[:service]
+    wfs_accessible = can?(:show, Wfs.new(topic_name))
+    unless wfs_accessible
+      logger.info "----> WFS '#{topic_name}' not accessible with roles #{current_roles.roles.collect(&:name).join('+')}!"
+      log_user_permissions(:show, Wfs.new(topic_name))
       request_http_basic_authentication('Secure WFS Login')
       return
     end
+
+    add_filter(topic_name)
+
     call_wfs(request)
   end
 
@@ -76,7 +77,11 @@ class WfsController < ApplicationController
       render :nothing => true
       return
     end
-    send_data response.body, :status => response.code, :type => response.content_type, :disposition => 'inline'
+    if (params[:format] == 'json')
+      send_data Hash.from_xml(response.body).to_json, :status => response.code, :type => {'Content-Type' => 'application/json'}, :disposition => 'inline'
+    else
+      send_data response.body, :status => response.code, :type => response.content_type, :disposition => 'inline'
+    end
   end
 
   #Public accessible WFS
@@ -90,5 +95,29 @@ class WfsController < ApplicationController
     end
   end
 
+  def add_filter(topic_name)
+    if !topic_name.blank? && params[:REQUEST] == "GetFeature" && !params[:TYPENAME].blank?
+      # get access filters for requested layers
+      access_filters = {}
+      params[:TYPENAME].split(',').each do |layer|
+        access_filter = current_ability.access_filter("WFS", topic_name, layer)
+        unless access_filter.nil?
+          access_filter.each do |key, value|
+            access_filter[key] = AccessFilter.user_value(current_user, value)
+          end
+          access_filters.merge!(access_filter)
+        end
+      end
+
+      if access_filters.any?
+        # remove existing filters
+        access_filters.each do |key, value|
+          request.env["QUERY_STRING"].gsub!(/(^|&)#{key}=.+?(?=(&|$))/, '')
+        end
+        # add serverside filters
+        request.env["QUERY_STRING"] += "&#{access_filters.to_query}"
+      end
+    end
+  end
 
 end

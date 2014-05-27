@@ -6,29 +6,32 @@ class WmsController < ApplicationController
   def show
     logger.debug "----> WMS call with user '#{current_user.try(:login)}'"
 
-    topic = Topic.where(:name => params[:service]).first
+    topic_name = params[:service]
+    topic = Topic.where(:name => topic_name).first
     add_sld_body(topic)
+    add_filter(topic_name)
 
     #Send redirect for public services
-    if request.get? && public?(params[:service], host_zone(request.host))
+    if request.get? && public?(topic_name, host_zone(request.host))
       url, path = mapserv_request_url(request)
-      #expires_in 2.minutes, :public => true #FIXME: cache_path "wms-public-#{params[:service]}-#{host_zone(request.host)}"
+      #expires_in 2.minutes, :public => true #FIXME: cache_path "wms-public-#{topic_name}-#{host_zone(request.host)}"
       redirect_to "#{url.scheme}://#{url.host}#{path}"
       return
     end
 
     topic_accessible = topic && can?(:show, topic)
-    wms_accessible = can?(:show, Wms.new(params[:service]))
+    wms_accessible = can?(:show, Wms.new(topic_name))
+
     if topic_accessible && !wms_accessible
       topic_accessible = session_ok?
       if !topic_accessible
-        logger.info "----> WMS '#{params[:service]}' not accessible without valid session!"
+        logger.info "----> WMS '#{topic_name}' not accessible without valid session!"
       end
     end
     if !topic_accessible && !wms_accessible && !print_request? # allow all topics for print servlet
-      logger.info "----> Topic/WMS '#{params[:service]}' not accessible with roles #{current_roles.roles.collect(&:name).join('+')}!"
+      logger.info "----> Topic/WMS '#{topic_name}' not accessible with roles #{current_roles.roles.collect(&:name).join('+')}!"
       log_user_permissions(:show, topic) if topic
-      log_user_permissions(:show, Wms.new(params[:service]))
+      log_user_permissions(:show, Wms.new(topic_name))
       request_http_basic_authentication('Secure WMS Login')
       return
     end
@@ -74,9 +77,9 @@ class WmsController < ApplicationController
     end
 
     path = if request.get?
-      path = "#{url.path}?"
-      path << url.query << '&' if url.query
-      path << request.query_string
+    path = "#{url.path}?"
+    path << url.query << '&' if url.query
+    path << request.query_string
       path
     else
       url.path
@@ -109,50 +112,30 @@ class WmsController < ApplicationController
 
   def add_sld_body(topic)
     unless params[:SELECTION].nil?
-      layer = topic.layers.find_by_name(params[:SELECTION][:LAYER])
-      if layer.nil?
+      sld_body = Wms.sld_selection(topic, params[:SELECTION][:LAYER], params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(','))
+      unless sld_body.nil?
+        # Remove non-WMS params
+        request.env["QUERY_STRING"].gsub!(/(^|&)SELECTION.+?(?=(&|$))/, '')
+        # add serverside SLD for selection
+        request.env["QUERY_STRING"] += "&SLD_BODY=" + URI.escape(sld_body)
+      else
         logger.info "Selection layer '#{params[:SELECTION][:LAYER]}' not found in topic '#{topic.name}'"
-        return
       end
-      # add serverside SLD for selection
-      request.env["QUERY_STRING"] += "&SLD_BODY=" + URI.escape(
-        sld_selection(layer, params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(',')))
-      # Remove non-WMS params
-      request.env["QUERY_STRING"].gsub!(/&SELECTION.+?(?=&)/, '')
-      params.delete[:SELECTION]
     end
   end
 
-  def sld_selection(layer, filter_property, filter_values)
-    sld = '<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" version="1.0.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml">'
-    sld <<  "<NamedLayer>"
-    sld <<    "<Name>#{layer.name}</Name>"
-    sld <<    "<UserStyle>"
-    sld <<      "<Name>default</Name>"
-    sld <<      "<FeatureTypeStyle>"
-
-    filter_values.each do |value|
-      # NOTE: use a separate rule for each value as workaround, as combined filter with <ogc:Or> does not work as expected
-      sld <<      "<Rule>"
-      sld <<        "<Name>show-#{value}</Name>"
-      sld <<        '<ogc:Filter>'
-      sld <<          "<ogc:PropertyIsEqualTo>"
-      sld <<            "<ogc:PropertyName>#{filter_property}</ogc:PropertyName>"
-      sld <<            "<ogc:Literal>#{value}</ogc:Literal>"
-      sld <<          "</ogc:PropertyIsEqualTo>"
-      sld <<        "</ogc:Filter>"
-      sld << layer.selection_symbolizer
-      sld <<        "<MinScaleDenominator>0</MinScaleDenominator>"
-      sld <<        "<MaxScaleDenominator>999999999</MaxScaleDenominator>"
-      sld <<      "</Rule>"
+  def add_filter(topic_name)
+    unless params[:LAYERS].blank?
+      filters = Wms.access_filters(current_ability, current_user, topic_name, params[:LAYERS].split(','))
+      if filters.any?
+        # remove existing filters
+        filters.each do |key, value|
+          request.env["QUERY_STRING"].gsub!(/(^|&)#{key}=.+?(?=(&|$))/, '')
+        end
+        # add serverside filters
+        request.env["QUERY_STRING"] += "&#{filters.to_query}"
+      end
     end
-
-    sld <<      "</FeatureTypeStyle>"
-    sld <<    "</UserStyle>"
-    sld <<  "</NamedLayer>"
-    sld << "</StyledLayerDescriptor>"
-
-    sld
   end
 
   #Public accessible WMS

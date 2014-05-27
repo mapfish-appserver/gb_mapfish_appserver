@@ -6,6 +6,11 @@ class ApplicationController < ActionController::Base
   before_filter :set_zone
   before_filter :set_locale
 
+  # This is our new function that comes before Devise's one
+  before_filter :authenticate_user_from_token!
+  # This is Devise's authentication
+  # before_filter :authenticate_user!
+
   protected
 
   #Zone 'intranet' or 'internet' depending on host name
@@ -67,6 +72,27 @@ class ApplicationController < ActionController::Base
       user_logout_path
     else
       stored_location_for(resource) || root_path
+    end
+  end
+
+# With a token setup, all you need to do is override
+# your application controller to also consider token
+# lookups:
+
+  
+  # For this example, we are simply using token authentication
+  # via parameters. However, anyone could use Rails's token
+  # authentication features to get the token from a header.
+  def authenticate_user_from_token!
+    user_token = params[:USER_TOKEN].presence
+    user       = user_token && User.find_by_authentication_token(user_token.to_s)
+
+   if user
+      # Notice we are passing store false, so the user is not
+      # actually stored in the session and a token is needed
+      # for every request. If you want the token to work as a
+      # sign in token, you can simply remove store: false.
+      sign_in user, :store => false
     end
   end
 
