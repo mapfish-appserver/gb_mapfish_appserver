@@ -11,10 +11,17 @@ Rails.application.routes.draw do
     match '/session/welcome' => "registrations#index", :as => :user_welcome
     match '/session/login' => "registrations#login", :as => :user_login
     match '/session/logout' => "registrations#logout", :as => :user_logout
+    match '/session/confirm' => "registrations#confirm", :as => :user_confirm
   end
 
+  resources :token_authentications, :only => [:create, :destroy]
 
-  resources :groups_users
+  resources :groups_users do
+    get :register, :on => :collection
+  end
+  resources :users do
+    get :find, :on => :collection
+  end
 
   resources :topics_layers
 
