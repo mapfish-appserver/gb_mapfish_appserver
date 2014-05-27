@@ -42,8 +42,9 @@ class Topic < ActiveRecord::Base
       app.gbapplications_categories.includes(:category).each do |gbapplications_category|
         category = gbapplications_category.category
         unless category.nil?
-          category_topics = category.topics.accessible_by(current_ability).select(
-            'topics.*,categories_topics.sort AS categories_topics_sort')
+          category_topics = category.topics.accessible_by(current_ability)
+          category_topics = category_topics.includes(:organisation).includes(:bg_topic).includes(:overlay_topics) # optimize query performance
+          category_topics.select('topics.*,categories_topics.sort AS categories_topics_sort')
           topics += category_topics.collect do |topic|
             subtopics = category_topics.select{|t| t.parent_id == topic.id}.collect do |subtopic|
               {
@@ -188,8 +189,10 @@ class Topic < ActiveRecord::Base
   end
 
   def query_layers(ability, active_layers) #TODO: 0.5s
-    layers.accessible_by(ability).where('topics_layers.queryable').order('topics_layers.leg_sort DESC').find_all do |layer|
-      active_layers.include?(layer.name)
+    ActiveRecord::Base.silence do
+      layers.accessible_by(ability).where('topics_layers.queryable').order('topics_layers.leg_sort DESC').find_all do |layer|
+        active_layers.include?(layer.name)
+      end
     end
   end
 

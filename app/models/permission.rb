@@ -47,7 +47,7 @@ class Permission < ActiveRecord::Base
     def role_can?(role_id, action, resource)
       ActiveRecord::Base.silence do
         can = if has_resource_list?
-          permitted_resources(role_id, action).include?(resource)
+          permitted_resources(role_id, action, resources).include?(resource)
         else
           permitted?(resource, permissions(role_id, action))
         end
@@ -67,6 +67,7 @@ class Permission < ActiveRecord::Base
     end
 
     def roles_can?(roles, action, resource)
+      # find first permitted role if any
       roles.find { |role| role_can?(role.id, action, resource) }
     end
 
@@ -74,6 +75,7 @@ class Permission < ActiveRecord::Base
       ActiveRecord::Base.silence do
         actions.each do |action|
           if has_resource_list?
+            # use Rails cache
             ids = Rails.cache.fetch("permitted_resource_ids-#{action}-#{@resource_type_name}-roles-#{roles.collect(&:id).join(',')}") do
               permitted_resource_ids(roles, action)
             end
@@ -90,10 +92,12 @@ class Permission < ActiveRecord::Base
 
     protected
 
+    # higher sequence takes precedence
     def permitted?(resource, permissions)
       allow = false
       permissions.each do |permission|
         if permission.deny
+          # NOTE: permissions with higher sequence will override this, so deny permissions should have highest sequence
           allow = false if compare(resource, permission.resource)
         else
           allow ||= compare(resource, permission.resource)
@@ -102,10 +106,10 @@ class Permission < ActiveRecord::Base
       allow
     end
 
-    #All resource permissionsfor a given role_id + action
-    def permitted_resources(role_id, action)
+    #All resource permissions for a given role_id + action
+    def permitted_resources(role_id, action, resources_list)
       permissions = permissions(role_id, action)
-      resources.select do |r|
+      resources_list.select do |r|
         permitted?(r, permissions)
       end
     end
@@ -114,11 +118,12 @@ class Permission < ActiveRecord::Base
     def permitted_resource_ids(roles, action)
       ids = []
       return ids if !has_resource_list?
-      roles.each { |role| ids += permitted_resources(role.id, action).collect(&:id) }
+      resources_list = resources.all # load resources here to optimize loop below
+      roles.each { |role| ids += permitted_resources(role.id, action, resources_list).collect(&:id) }
       ids.sort.uniq
     end
 
-    #All permissions for a given role_id + action
+    #All permissions for a given role_id + action, ordered by sequence
     def permissions(role_id, action)
       Permission.where(:role_id => role_id,
         :resource_type => @resource_type_name, :action => action).order(

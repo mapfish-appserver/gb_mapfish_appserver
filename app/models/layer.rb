@@ -103,10 +103,6 @@ EOS
     #logger.info "************************* Attribute for name '#{name}': #{@attrs[name].inspect}"
   end
 
-  #def filtered(ability)
-  #  feature_class.where(ability.resource_access_filter(self))
-  #end
-
   def query_fields(ability)
     return '' if feature_class.nil?
     ([pkey]+ident_fields_for(ability)+[feature_class.extent_field, feature_class.area_field]).join(',')

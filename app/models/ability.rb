@@ -120,10 +120,12 @@ class Ability
     def layer_topics_lookup
       #Build a lookup hash for all layer -> topic relations
       @layer_topics ||= begin
-        layer_topics = resources.all.inject({}) {|hsh,l| hsh[l.id] = []; hsh }        
-        # layer_topics = resources.inject({}) {|hsh,l| hsh[l.id] = []; hsh }
-        all_topics = Topic.select("topics.id,topics.name,layers.id,layers.name").includes(:layers)
-        all_topics.each {|t| t.layers.each {|l| layer_topics[l.id] << t.name} }
+        layer_topics = resources.all.inject({}) {|hsh,l| hsh[l.id] = []; hsh }
+
+        # NOTE: query without includes(:layers) is about 5 times faster
+        all_topics = Topic.select("id,name")
+        all_topics.each {|t| t.layers.select("layers.id,layers.name").each {|l| layer_topics[l.id] << t.name} }
+
         layer_topics
       end
     end
@@ -267,6 +269,8 @@ class Ability
     alias_action :index, :show, :legend, :query, :to => :edit #Edit implies index and show permissions
     alias_action :legend, :query, :to => :show #Show implies legend and query permissions
 
+    @access_filters = {}
+
     @ability_roles = ability_roles
     if @ability_roles.has_role?(:admin)
       can :manage, :all
@@ -296,16 +300,23 @@ class Ability
 
       #Attribute permissions
       ToolResourceType.new.add_ability(self, roles)
-    end
 
-    #Access filters: { resource_type => { resource => filter } }
-    #@access_filters = {}
-    #AccessFilter.for_roles(roles).each do |access_filter|
-    #  @access_filters[access_filter.resource_type] ||= {}
-    #  rtaf = @access_filters[access_filter.resource_type]
-    #  res = access_filter.resource.split('/').last
-    #  rtaf[res] = access_filter.condition
-    #end
+      #Access filters:
+      # {
+      #   resource_type => {
+      #     topic => {
+      #       layer => condition
+      #     }
+      #   }
+      # }
+      AccessFilter.for_roles(roles).each do |access_filter|
+        @access_filters[access_filter.resource_type] ||= {}
+
+        topic, layer = access_filter.resource.split('/')
+        @access_filters[access_filter.resource_type][topic] ||= {}
+        @access_filters[access_filter.resource_type][topic][layer] = access_filter.parse_condition
+      end
+    end
   end
 
   def roles
@@ -317,9 +328,22 @@ class Ability
     resource_type.roles_permissions(roles, action, resource)
   end
 
-  #def resource_access_filter(resource)
-  #  rtaf = @access_filters[resource.class.to_s]
-  #  return nil if rtaf.nil?
-  #  rtaf[resource.table]
-  #end
+  # specific topic/layer takes precedence over "*" wildcard
+  # priorities: topic/layer > topic/* > */layer > */*
+  def access_filter(resource_type, topic, layer)
+    filter = nil
+    unless @access_filters[resource_type].nil?
+      unless @access_filters[resource_type][topic].nil?
+        # topic/layer or topic/*
+        filter = @access_filters[resource_type][topic][layer] || @access_filters[resource_type][topic]["*"]
+      end
+
+      if filter.nil? && !@access_filters[resource_type]["*"].nil?
+        # */layer or */*
+        filter = @access_filters[resource_type]["*"][layer] || @access_filters[resource_type]["*"]["*"]
+      end
+    end
+    filter
+  end
+
 end
