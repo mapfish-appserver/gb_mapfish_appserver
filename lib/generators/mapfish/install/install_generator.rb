@@ -75,7 +75,7 @@ module Mapfish
 #Parts for building a Mapserver URL
 # Example: http://localhost/cgi-bin/mapserv.fcgi?map=#{Rails.root}/mapconfig/#{options["default-site-name"]}/naturalearth.map)
 MAPSERV_SERVER = 'http://localhost' #nil for current application server
-MAPSERV_URL = '/cgi-bin/mapserv.fcgi'
+MAPSERV_URL = '/cgi-bin/mapserv'
 MAPSERV_CGI_URL = '/cgi-bin/mapserv'
 MAPPATH = '#{Rails.root}/mapconfig'
 

@@ -39,7 +39,7 @@ end
 #Parts for building a Mapserver URL
 # Example: http://localhost/cgi-bin/mapserv.fcgi?map=/home/pi/code/rails/dummy/mapconfig/maps.example.com/naturalearth.map)
 MAPSERV_SERVER = 'http://localhost' #nil for current application server
-MAPSERV_URL = '/cgi-bin/mapserv.fcgi'
+MAPSERV_URL = '/cgi-bin/mapserv'
 MAPSERV_CGI_URL = '/cgi-bin/mapserv'
 MAPPATH = '/home/pi/code/rails/gb_mapfish_appserver/test/dummy/mapconfig'
 
