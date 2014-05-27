@@ -1,24 +1,34 @@
+<% if @groups.any? || @groups_users.any? %>
 <h1>Usergruppen Verwaltung</h1>
+<% end %>
 
+<% if @groups.any? %>
 <table>
   <tr>
     <th>Group</th>
     <th>Signup-Link</th>
+    <th></th>
   </tr>
 
 <% @groups.each do |group| %>
   <tr>
     <td><%= group.name %></td>
     <td><%= link_to new_user_registration_url(:group => group.name), new_user_registration_path(:group => group.name) %></td>
+    <td><%= link_to 'User hinzufügen', new_groups_user_path({:group => group}) %></td>
   </tr>
 <% end %>
 </table>
+<% end %>
 
+<% if @groups_users.any? %>
 <table>
   <tr>
     <th>Group</th>
+    <th>Login</th>
     <th>User</th>
+    <th>EMail</th>
     <th>Granted</th>
+    <th>Info</th>
     <th></th>
     <th></th>
   </tr>
@@ -26,14 +36,35 @@
 <% @groups_users.each do |groups_user| %>
   <tr>
     <td><%= groups_user.group.name %></td>
+    <td><%= link_to groups_user.user.login, edit_user_path(groups_user.user) %></td>
     <td><%= groups_user.user.name %></td>
-    <td><%= groups_user.granted %></td>
-    <td><%= link_to 'Edit', edit_groups_user_path(groups_user) %></td>
-    <td><%= link_to 'Destroy', groups_user, :confirm => 'Are you sure?', :method => :delete %></td>
+    <td><%= groups_user.user.email %></td>
+    <td><%= link_to groups_user.granted.to_s, edit_groups_user_path(groups_user) %></td>
+    <td>
+      <% unless groups_user.user.app_infos.nil? %>
+        <% groups_user.user.app_infos.each do |key, value| %>
+          <i><%= key %></i>: <%= value %><br/>
+        <% end %>
+      <% end %>
+    </td>
+    <td><%= link_to 'Bearbeiten', edit_user_path(groups_user.user) %></td>
+    <td><%= link_to 'Entfernen', groups_user, :confirm => 'Benutzer aus Gruppe entfernen?', :method => :delete %></td>
   </tr>
 <% end %>
 </table>
+<% end %>
 
-<br />
+<h1>Eigene Gruppen</h1>
 
-<%= link_to 'New Groups user', new_groups_user_path %>
+<table>
+  <tr>
+    <th>Gruppe</th>
+    <th>Freigeschaltet</th>
+  </tr>
+<% current_user.groups_users.each do |groups_user| %>
+  <tr>
+    <td><%= groups_user.group.name %></td>
+    <td><%= groups_user.granted ? "ja" : "nein" %></td>
+  </tr>
+<% end %>
+</table>

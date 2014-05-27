@@ -31,4 +31,25 @@
 	<div class="row">
 		<%= f.submit "Update" %>
 	</div>
+
+	<div class="row">
+		<%= f.label :token_authentication_key %>
+	  	<p><%= resource.authentication_token.blank? ? "Token Empty" : resource.authentication_token %></p>
+	</div>
+
+	<div class="row">
+  		<%= link_to "Generate Token", token_authentications_path(:user_id => resource.id), :method => :post, :confirm => "Are you sure?"  %>
+  		<%= link_to "Delete Token", token_authentication_path(resource), :method => :delete, :confirm => "Are you sure?"  %>
+	</div>
+
+	<div class="row">
+		<% if resource.authentication_token %>
+			<p>You can use this url to login<br />
+			<%= link_to "http://maps.zh.ch#{root_path(:user_token => resource.authentication_token)}", root_path(:user_token => resource.authentication_token)  %></p>
+		<% end %>
+	</div>
+
+
+
+
 <% end %>

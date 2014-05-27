@@ -1,0 +1,63 @@
+<h2>Benutzer bearbeiten</h2>
+
+<%= form_for @user do |f| %>
+  <% if @user.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this groups_user from being saved:</h2>
+
+      <ul>
+        <% @user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <%= f.label 'Login' %>
+    <div class="input uneditable-input">
+      <%= @user.login %>
+    </div>
+  </div>
+
+  <div class="row">
+    <%= f.label 'Name' %>
+    <div class="input uneditable-input">
+      <%= @user.name %>
+    </div>
+  </div>
+
+  <div class="row">
+    <%= f.label 'E-Mail' %>
+    <div class="input uneditable-input">
+      <%= @user.email %>
+    </div>
+  </div>
+
+  <% if current_user.id == @user.id %>
+    <%= link_to "Bearbeiten", edit_user_registration_path(current_user) %>
+  <% end %>
+
+  <% @user.groups_users.each do |groups_user| %>
+    <% next if groups_user.group.nil? %>
+    <% if File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name)) && (@user.id == current_user.id || current_user.group_admin?(groups_user.group)) %>
+    <fieldset>
+      <legend><%= groups_user.group.name %> (<%= groups_user.granted ? "freigeschaltet" : "nicht freigeschaltet" %>)</legend>
+      <%= render :partial => "registrations/#{groups_user.group.name}/app_infos", :locals => {:f => f} %>
+      <%# show user filter fields to group admins only %>
+      <% if current_user.group_admin?(groups_user.group) && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name, '_filters.html.erb')) %>
+        <div class="row">
+          <b><%= f.label "Filter" %></b>
+        </div>
+        <%= render :partial => "registrations/#{groups_user.group.name}/filters", :locals => {:f => f} %>
+      <% end %>
+    </fieldset>
+    <% end %>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit "Benutzer speichern" %>
+  </div>
+<% end %>
+
+<%= link_to 'Zurück', groups_users_path %>

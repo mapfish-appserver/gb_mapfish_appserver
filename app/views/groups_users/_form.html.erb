@@ -18,9 +18,21 @@
     </div>
   </div>
   <div class="row">
+    <%= f.label 'Login name' %>
+    <div class="input uneditable-input">
+      <%= @groups_user.user.login %>
+    </div>
+  </div>
+  <div class="row">
     <%= f.label 'User' %>
     <div class="input uneditable-input">
       <%= @groups_user.user.name %>
+    </div>
+  </div>
+  <div class="row">
+    <%= f.label 'Email' %>
+    <div class="input uneditable-input">
+      <a href="mailto:<%= @groups_user.user.email %>?Subject=Best&auml;tigung&Body=<%= render @mail_body %>"><%= @groups_user.user.email %></a>
     </div>
   </div>
   <div class="row">

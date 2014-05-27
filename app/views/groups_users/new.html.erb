@@ -1,5 +1,44 @@
-<h1>New groups_user</h1>
+<% content_for :head do %>
+<script type="text/javascript">
+  $(function() {
+    $('#user_email').autocomplete({
+      source: '/users/find.json',
+      minLength: 3
+    });
+  });
+</script>
+<% end %>
 
-<%= render 'form' %>
+<h1>Benutzer zu Gruppe hinzufügen</h1>
 
-<%= link_to 'Index', groups_users_path %>
+<%= form_for(@groups_user) do |f| %>
+  <% if @groups_user.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@groups_user.errors.count, "error") %> prohibited this groups_user from being saved:</h2>
+
+      <ul>
+        <% @groups_user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= f.hidden_field :group_id, :value => @group.id %>
+  <div class="row">
+    <%= f.label 'Gruppe' %>
+    <div class="input uneditable-input">
+      <%= @groups_user.group.name %>
+    </div>
+  </div>
+  <div class="row">
+    <%= f.label :user_email, 'Benutzer E-Mail' %>
+    <%= text_field_tag :user_email %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit "Benutzer hinzufügen" %>
+  </div>
+<% end %>
+
+<%= link_to 'Zurück', groups_users_path %>
