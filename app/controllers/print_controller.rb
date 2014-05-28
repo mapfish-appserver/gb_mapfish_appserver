@@ -69,8 +69,8 @@ class PrintController < ApplicationController
     layers_to_delete = []
     request.parameters["layers"].each do |layer|
       if layer["baseURL"] # WMS layers
-        topic = File.basename(URI.parse(layer["baseURL"]).path)
-        if accessible_topics.include?(topic)
+        topic_name = File.basename(URI.parse(layer["baseURL"]).path)
+        if accessible_topics.include?(topic_name)
           # rewrite URL for local WMS, use CGI if layer filter is used
           use_cgi = !layer["customParams"].nil? && layer["customParams"].any? { |param, value| param =~ LAYER_FILTER_REGEX }
           layer["baseURL"] = rewrite_wms_uri(layer["baseURL"], use_cgi)
@@ -330,7 +330,7 @@ class PrintController < ApplicationController
       }
       if request.parameters["pages"]
         page = request.parameters["pages"].first
-        %w(scale rotation base_url user_title user_comment).each do |mfparam|
+        %w(scale rotation base_url user_title user_comment topics2print withlegend).each do |mfparam|
           call_params[mfparam.upcase] = page[mfparam]
         end
         call_params[:MAP_BBOX] = page["extent"].join(',')

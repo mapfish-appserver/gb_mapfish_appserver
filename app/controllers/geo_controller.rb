@@ -7,7 +7,8 @@ class GeoController < ApplicationController
   end
 
   def index
-    @features = geo_model.bbox_filter(params).user_filter(current_ability)
+    @features = geo_model.bbox_filter(params)
+    @features = @features.user_filter(current_ability)
     respond_to do |format|
       # NOTE: return GeoJSON by default (OpenLayers.Protocol.HTTP PUT does not work with '.json' format selection)
       format.html {
