@@ -19,20 +19,20 @@ Gem::Specification.new do |s|
   s.add_dependency "json"
   s.add_dependency "acts_as_tree", "0.2.0"
 
-  s.add_dependency "devise", "2.0.4"
-  s.add_dependency "cancan", "1.6.7"
+  s.add_dependency "devise", "~> 2.2.0"
+  s.add_dependency "cancan", "~> 1.6.8"
 
-  s.add_dependency "rails_admin", "0.0.5"
+  s.add_dependency "rails_admin", "~> 0.4.0"
   s.add_dependency "fastercsv"# required for rails_admin and Ruby <= 1.8
   s.add_dependency "sass", "~> 3.2.12" # rails_admin 0.0.5 does not work with sass >=3.3
 
   s.add_dependency "GeoRuby", ">= 0.1.4" #used for reading envelope, e.g. in GeoModel#bbox
 
-  s.add_dependency "rgeo", "0.3.20"
-  s.add_dependency "rgeo-geojson", "0.2.1"
+  s.add_dependency "rgeo", "~> 0.3.20"
+  s.add_dependency "rgeo-geojson", "~> 0.2.3"
 
   s.add_dependency "hpricot" # Cascaded WMS FeatureInfo parsing
 
-  s.add_dependency "pg", "0.14.0"
+  s.add_dependency "pg", "~> 0.14.0"
   s.add_dependency "activerecord-postgis-adapter", "0.4.1"
 end
