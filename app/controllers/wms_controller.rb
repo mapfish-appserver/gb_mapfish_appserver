@@ -160,7 +160,7 @@ class WmsController < ApplicationController
 
   def add_filter(topic_name)
     unless params[:LAYERS].blank?
-      filters = access_filters(topic_name, params[:LAYERS].split(','))
+      filters = Wms.access_filters(current_ability, current_user, topic_name, params[:LAYERS].split(','))
       if filters.any?
         # remove existing filters
         filters.each do |key, value|
@@ -170,22 +170,6 @@ class WmsController < ApplicationController
         request.env["QUERY_STRING"] += "&#{filters.to_query}"
       end
     end
-  end
-
-  def access_filters(topic_name, layers)
-    access_filters = {}
-    unless topic_name.blank?
-      layers.each do |layer|
-        access_filter = current_ability.access_filter("WMS", topic_name, layer)
-        unless access_filter.nil?
-          access_filter.each do |key, value|
-            access_filter[key] = AccessFilter.user_value(current_user, value)
-          end
-          access_filters.merge!(access_filter)
-        end
-      end
-    end
-    access_filters
   end
 
   #Public accessible WMS
