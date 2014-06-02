@@ -26,6 +26,7 @@ DEFAULT_TOPIC = {
 DEFAULT_SCALE = 310000
 DEFAULT_X = 692000
 DEFAULT_Y = 252000
+DEFAULT_ZOOM = 4
 
 # regex for WMS parameters to detect if layer filter is used
 LAYER_FILTER_REGEX = /^filter_.+$/i
