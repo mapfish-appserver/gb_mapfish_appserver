@@ -11,7 +11,7 @@ class PrintController < ApplicationController
   skip_before_filter :verify_authenticity_token, :only => :create # allow /print/create with POST
 
   #cache info.json
-  caches_action :info, :cache_path => Proc.new { :protocol => request.protocol }
+  caches_action :info, :cache_path => Proc.new { { :proto => request.protocol } }
 
   class JavaError < Exception
     def initialize(cmd, message)
