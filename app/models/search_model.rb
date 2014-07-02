@@ -1,6 +1,7 @@
 class SearchModel < GeoModel
 
   LOCATE_MAX_COUNT = 50
+  SEARCH_MAX_COUNT = 50
 
   self.abstract_class = true
 
