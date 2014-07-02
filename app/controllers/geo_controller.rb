@@ -44,6 +44,8 @@ class GeoController < ApplicationController
       logger.info "#{geo_model.table_name}.update_attributes_from_feature: #{feature.inspect}"
       if new_feature.update_attributes_from_geojson_feature(feature, current_user)
         @features << new_feature
+      else
+        head :unprocessable_entity
       end
     end
 

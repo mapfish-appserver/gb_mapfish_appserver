@@ -120,9 +120,9 @@ class WmsController < ApplicationController
       sld_body = sld_selection(layer, params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(','))
       # Remove non-WMS params
       request.env["QUERY_STRING"].gsub!(/(^|&)SELECTION.+?(?=(&|$))/, '')
+      #params.delete(:SELECTION)
       # add serverside SLD for selection
       request.env["QUERY_STRING"] += "&SLD_BODY=" + URI.escape(sld_body)
-      params.delete[:SELECTION]
     end
   end
 

@@ -23,6 +23,11 @@ class AppsController < ApplicationController
     @selproperty = params['selproperty']
     @selvalues = params['selvalues'].nil? ? [] : params['selvalues'].split('$')
 
+    @filt_topic = params['filttopic']
+    @filt_param = params['filtparam']
+    @filt_values = params['filtvalues'].nil? ? [] : params['filtvalues'].split('$')
+    @filt_typestring = params['filttypestring'].nil? ? 0 : params['filttypestring']
+
     @redlining = params['redlining'].blank? ? nil : params['redlining']
     @centermarker = params['centermarker']
 

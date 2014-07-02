@@ -2,13 +2,26 @@ class SearchController < ApplicationController
 
   def index
     @rule =  SEARCHRULES[params[:rule]]
-    result = @rule.model.query(@rule.fields, params)
-    @features = result[:features]
-    @quality = result[:quality]
+    if @rule.nil? then
+      respond_to do |format|
+        format.html # index.html.erb
+        format.json { render :json => {:success => false,  :quality => -9999, :msg => "ERROR: #{params[:rule]} model missing"} }
+      end
+    else
+      result = @rule.model.query(@rule.fields, params)
+      @features = result[:features]
+      @quality = result[:quality]
+      @success = @quality >= 0 
 
-    respond_to do |format|
-      format.html # index.html.erb
-      format.json { render :json => {:success => true, :features => features_for_json_reader(@features), :quality => @quality} }
+      respond_to do |format|
+        format.html # index.html.erb
+        if @success then
+          format.json { render :json => {:success => @success, :features => features_for_json_reader(@features), :quality => @quality} }
+        else
+          @msg = result[:msg]
+          format.json { render :json => {:success => @success, :features => features_for_json_reader(@features), :quality => @quality, :msg => @msg} }
+        end
+      end
     end
   end
 

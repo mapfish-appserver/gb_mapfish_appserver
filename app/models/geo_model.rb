@@ -84,7 +84,7 @@ class GeoModel < ActiveRecord::Base
       filter = filter.where("ST_Intersects(#{table_name}.#{connection.quote_column_name(geometry_column_name)}, ST_SetSRID(#{filter_geom}, #{srid}))")
     end
 
-    filter
+    filter.limit(1000)
   end
 
   def self.geojson_decode(json)
@@ -111,7 +111,7 @@ class GeoModel < ActiveRecord::Base
 
   def update_attributes_from_geojson_feature(feature, user)
     attr = feature.properties
-    attr[self.class.geometry_column_name] = feature.geometry
+    attr[self.class.geometry_column_name] = feature.geometry unless feature.geometry.nil?
     ok = update_attributes(attr)
     modified_by(user)
     ok
