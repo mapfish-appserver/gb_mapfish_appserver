@@ -85,7 +85,8 @@ class Topic < ActiveRecord::Base
               "background_layer" => topic.background_layer,
               "main_layer" => topic.main_layer,
               "overlay_layer" => topic.overlay_layer,
-              "minscale" => topic.minscale
+              "minscale" => topic.minscale,
+              "gb1_params" => topic.gb1_params  #TODO: generalized param for custom viewers
             }
           end
         end
