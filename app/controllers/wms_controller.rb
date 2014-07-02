@@ -117,45 +117,13 @@ class WmsController < ApplicationController
         logger.info "Selection layer '#{params[:SELECTION][:LAYER]}' not found in topic '#{topic.name}'"
         return
       end
-      sld_body = sld_selection(layer, params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(','))
+      sld_body = Wms.sld_selection(layer, params[:SELECTION][:PROPERTY], params[:SELECTION][:VALUES].split(','))
       # Remove non-WMS params
       request.env["QUERY_STRING"].gsub!(/(^|&)SELECTION.+?(?=(&|$))/, '')
       #params.delete(:SELECTION)
       # add serverside SLD for selection
       request.env["QUERY_STRING"] += "&SLD_BODY=" + URI.escape(sld_body)
     end
-  end
-
-  def sld_selection(layer, filter_property, filter_values)
-    sld = '<StyledLayerDescriptor xmlns="http://www.opengis.net/sld" version="1.0.0" xmlns:ogc="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml">'
-    sld <<  "<NamedLayer>"
-    sld <<    "<Name>#{layer.name}</Name>"
-    sld <<    "<UserStyle>"
-    sld <<      "<Name>default</Name>"
-    sld <<      "<FeatureTypeStyle>"
-
-    filter_values.each do |value|
-      # NOTE: use a separate rule for each value as workaround, as combined filter with <ogc:Or> does not work as expected
-      sld <<      "<Rule>"
-      sld <<        "<Name>show-#{value}</Name>"
-      sld <<        '<ogc:Filter>'
-      sld <<          "<ogc:PropertyIsEqualTo>"
-      sld <<            "<ogc:PropertyName>#{filter_property}</ogc:PropertyName>"
-      sld <<            "<ogc:Literal>#{value}</ogc:Literal>"
-      sld <<          "</ogc:PropertyIsEqualTo>"
-      sld <<        "</ogc:Filter>"
-      sld << layer.selection_symbolizer
-      sld <<        "<MinScaleDenominator>0</MinScaleDenominator>"
-      sld <<        "<MaxScaleDenominator>999999999</MaxScaleDenominator>"
-      sld <<      "</Rule>"
-    end
-
-    sld <<      "</FeatureTypeStyle>"
-    sld <<    "</UserStyle>"
-    sld <<  "</NamedLayer>"
-    sld << "</StyledLayerDescriptor>"
-
-    sld
   end
 
   def add_filter(topic_name)

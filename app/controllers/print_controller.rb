@@ -208,18 +208,16 @@ class PrintController < ApplicationController
   def add_sld_body(topic, layer)
     # add SLD for selection
     unless layer["customParams"]["SELECTION[LAYER]"].blank?
-      sld_body = Wms.sld_selection(topic,
-        layer["customParams"]["SELECTION[LAYER]"],
+      sellayer = topic.layers.find_by_name(layer["customParams"]["SELECTION[LAYER]"])
+      if sellayer.nil?
+        logger.info "Selection layer '#{layer["customParams"]["SELECTION[LAYER]"]}' not found in topic '#{topic.name}'"
+        return
+      end
+      sld_body = Wms.sld_selection(sellayer,
         layer["customParams"]["SELECTION[PROPERTY]"],
         layer["customParams"]["SELECTION[VALUES]"].split(',')
       )
-
-      unless sld_body.nil?
-        # add serverside SLD for selection
-        layer["customParams"]["SLD_BODY"] = sld_body
-      else
-        logger.info "Selection layer '#{layer["customParams"]["SELECTION[LAYER]"]}' not found in topic '#{topic.name}'"
-      end
+      layer["customParams"]["SLD_BODY"] = sld_body
 
       # remove non-WMS params
       layer["customParams"].delete("SELECTION[LAYER]")
