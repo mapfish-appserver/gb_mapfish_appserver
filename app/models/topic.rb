@@ -44,7 +44,8 @@ class Topic < ActiveRecord::Base
         unless category.nil?
           category_topics = category.topics.accessible_by(current_ability)
           category_topics = category_topics.includes(:organisation).includes(:bg_topic).includes(:overlay_topics) # optimize query performance
-          category_topics.select('topics.*,categories_topics.sort AS categories_topics_sort')
+          category_topics = category_topics.select('topics.*,categories_topics.sort AS categories_topics_sort')
+
           topics += category_topics.collect do |topic|
             subtopics = category_topics.select{|t| t.parent_id == topic.id}.collect do |subtopic|
               {
