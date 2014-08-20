@@ -51,6 +51,7 @@ namespace :mapfile do
       topic.main_layer = true if topic.main_layer.nil?
       topic.save!
 
+      topic.topics_layers.destroy_all
       Layer.unused.destroy_all
       SublayerGroup.unused.destroy_all
 
