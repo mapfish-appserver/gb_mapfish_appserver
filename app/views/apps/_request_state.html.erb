@@ -1,10 +1,19 @@
     <script type="text/javascript">
         var requestState = {
             <% if user_signed_in? %>
-            user: '<%= current_user.login %>',
+            user: {
+                login: '<%= current_user.login %>',
+                email: '<%= current_user.email %>'
+            },
+            roles: <%= raw @current_roles.to_json %>,
             <% end %>
             mainRequestedTopic: '<%= @topic_name %>',
+            <% if @back_topic_name.nil? %>
             backRequestedTopic: null,
+            <% else %>
+            backRequestedTopic: '<%= @back_topic_name %>',
+            <% end %>
+            overRequestedTopic: <%=raw @over_topic_name %>,
             mainDefaultTopic: '<%= @main_default_topic %>',
             backDefaultTopic: null,
             offlayers: <%= raw @offlayers.to_json %>,
