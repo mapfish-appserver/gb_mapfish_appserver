@@ -296,7 +296,7 @@ class PrintController < ApplicationController
     #send_data response.body, :status => response.code, :type=>'application/x-pdf', :disposition=>'attachment', :filename=>'map.pdf'
     tempId = SecureRandom.random_number(2**31)
     temp = TMP_PREFIX + tempId.to_s + TMP_SUFFIX
-    File.open(temp, 'w') {|f| f.write(response.body) }
+    File.open(temp, 'wb') {|f| f.write(response.body) }
     convert_and_send_link(temp, tempId, request.parameters["dpi"], request.parameters["outputFormat"])
   end
 
@@ -355,7 +355,7 @@ class PrintController < ApplicationController
      result
   end
 
-  #Mapfish print comaptible report delivery
+  #Mapfish print compatible report delivery
   def call_report(request)
       result = create_report(request)
       if result.nil?
@@ -366,7 +366,7 @@ class PrintController < ApplicationController
       if result.kind_of? Net::HTTPSuccess
         temp_id = SecureRandom.random_number(2**31)
         temp = TMP_PREFIX + temp_id.to_s + TMP_SUFFIX
-        File.open(temp, 'w') {|f| f.write(result.body) }
+        File.open(temp, 'wb') {|f| f.write(result.body) }
 
         render :json=>{ 'getURL' => url_for(:action=> 'show', :id=> temp_id) + ".pdf" }
       else
