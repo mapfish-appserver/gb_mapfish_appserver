@@ -1,7 +1,5 @@
 Rails.application.routes.draw do
 
-  mount RailsAdmin::Engine => '/gbadmin', :as => 'rails_admin'
-
   devise_for :users,
     :path => "session", :controllers => {:registrations => "registrations"},
     :sign_out_via => [ :get, :delete ]
@@ -13,6 +11,8 @@ Rails.application.routes.draw do
     match '/session/logout' => "registrations#logout", :as => :user_logout
     match '/session/confirm' => "registrations#confirm", :as => :user_confirm
   end
+
+  mount RailsAdmin::Engine => '/gbadmin', :as => 'rails_admin'
 
   resources :token_authentications, :only => [:create, :destroy]
 

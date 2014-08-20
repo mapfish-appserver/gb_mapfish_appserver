@@ -22,7 +22,8 @@ Gem::Specification.new do |s|
   s.add_dependency "devise", "~> 2.2.0"
   s.add_dependency "cancan", "1.6.8" # 1.6.9 breaks aliasing to :show (https://github.com/ryanb/cancan/pull/660#issuecomment-13257667)
 
-  s.add_dependency "rails_admin", "~> 0.4.0"
+  s.add_dependency "rails_admin", "~> 0.4.9"
+
   s.add_dependency "fastercsv" # required for rails_admin and Ruby <= 1.8
   s.add_dependency "sass", "~> 3.2.12" # rails_admin 0.0.5 does not work with sass >=3.3
 
