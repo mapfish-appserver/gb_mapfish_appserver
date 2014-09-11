@@ -31,6 +31,9 @@ class TopicsController < ApplicationController
   end
 
   def query
+    # optional parameter (default = false) to return only the feature nearest to the center of the search geometry, if no custom layer query is used
+    nearest = params['nearest'] == 'true'
+
     @query_topics = ActiveSupport::JSON.decode(params[:infoQuery])['queryTopics']
     #e.g. [{"layers"=>"lk25,grenzen,gemeindegrenzen,seen,wald,haltestellen", "divCls"=>"legmain", "level"=>"main", "topic"=>"BASISKARTEZH"}, {"layers"=>"", "divCls"=>"legover", "level"=>"over", "topic"=>"AVParzOverlayZH"}]
     @query_topics.each do |query_topic|
@@ -38,15 +41,15 @@ class TopicsController < ApplicationController
       authorize! :show, topic
       query_topic['topicobj'] = topic
       if params['bbox']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'])
+        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'], nearest)
       elsif params['rect']
         x1, y1, x2, y2 = params['rect'].split(',').collect(&:to_f)
         rect = "POLYGON((#{x1} #{y1}, #{x1} #{y2}, #{x2} #{y2}, #{x2} #{y1} ,#{x1} #{y1}))"
-        query_topic['results'] = topic.query(current_ability, query_topic, rect)
+        query_topic['results'] = topic.query(current_ability, query_topic, rect, nearest)
       elsif params['circle']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'])
+        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'], nearest)
       elsif params['poly']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'])
+        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'], nearest)
       else
         # problem
       end

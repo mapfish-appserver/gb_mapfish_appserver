@@ -38,24 +38,34 @@ class GeoModel < ActiveRecord::Base
     "ST_Area(#{table_name}.#{geometry_column.name}) AS area"
   end
 
-  def self.identify_filter(searchgeo, radius)
+  def self.identify_filter(searchgeo, radius, nearest=false)
+    filter = scoped
     if searchgeo[0..3] == "POLY"
       logger.debug "*** POLY-query: #{searchgeo} ***"
       polygon = "ST_GeomFromText('#{searchgeo}', #{srid})"
-      scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{polygon}, #{radius})")
+      filter = filter.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{polygon}, #{radius})")
+      center = "ST_Centroid(#{polygon})"
     else
       if searchgeo.split(',').length == 3
         logger.debug "*** CIRCLE-query: #{searchgeo} ***"
         x1, y1, r  = searchgeo.split(',').collect(&:to_f)
         center = "ST_GeomFromText('POINT(#{x1} #{y1})', #{srid})"
-        scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{r})")
+        filter = filter.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{r})")
       else
         logger.debug "*** BBOX-query: #{searchgeo} ***"
         x1, y1, x2, y2 = searchgeo.split(',').collect(&:to_f)
         center = "ST_GeomFromText('POINT(#{x1+(x2-x1)/2} #{y1+(y2-y1)/2})', #{srid})"
-        scoped.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{radius})")
+        filter = filter.where("ST_DWithin(#{table_name}.#{geometry_column_name}, #{center}, #{radius})")
       end
     end
+
+    if nearest
+      logger.debug "*** query nearest ***"
+      # get the feature nearest to the center of the search geometry
+      filter = filter.order("ST_Distance(#{table_name}.#{geometry_column_name}, #{center})").limit(1)
+    end
+
+    filter
   end
 
   #Custom identify query

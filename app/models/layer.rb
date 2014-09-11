@@ -118,7 +118,7 @@ EOS
     allowed_fields
   end
 
-  def query(ability, query_topic, searchgeo)
+  def query(ability, query_topic, searchgeo, nearest=false)
     if table =~ /^https?:/
       features = get_feature_info(searchgeo)
       [self, features, searchgeo.split(',')]
@@ -141,7 +141,7 @@ EOS
           feature_class.identify_query(searchgeo, searchdistance)
         else
           logger.debug "*** Identify on layer #{name} with query fields #{query_fields(ability)} at #{searchgeo.inspect}"
-          feature_class.identify_filter(searchgeo, searchdistance).select(query_fields(ability)).all
+          feature_class.identify_filter(searchgeo, searchdistance, nearest).select(query_fields(ability)).all
         end
         logger.debug "Number of features: #{features.size}"
         # calculate bbox of all features
