@@ -25,6 +25,21 @@ class SearchController < ApplicationController
     end
   end
 
+  def locate
+    rule = LOCATERULES[params[:rule]]
+    if rule.nil?
+      render :json => {:success => false, :msg => "ERROR: #{params[:rule]} model missing"}
+    else
+      location = rule.locate(params['locations'])
+      unless location.nil?
+        location[:success] = true
+        render :json => location
+      else
+        render :json => {:success => false, :msg => "No features found"}
+      end
+    end
+  end
+
   def soap_wsdl
     render "#{params[:rule]}_wsdl.xml"
   end

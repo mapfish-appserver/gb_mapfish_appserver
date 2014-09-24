@@ -35,6 +35,7 @@ Rails.application.routes.draw do
   resources :maps
 
   match 'search/:rule' => 'search#index'
+  match 'locate/:rule' => 'search#locate', :as => :locate
   match 'services/:rule.wsdl' => 'search#soap_wsdl', :as => :services_description
   match 'services/:rule' => 'search#soap', :as => :services
 

@@ -38,31 +38,17 @@ class AppsController < ApplicationController
       if rule.nil?
         logger.info "Locate rule not found: {params['locate']}"
       else
-        model = rule.model.constantize
-        features = if rule.layer.nil?
-          #User defined model
-          @seltopic = model.selection_topic
-          @sellayer = model.selection_layer
-          @selproperty = model.primary_key
-          @selscalerange = model.selection_scalerange
-          search_locs = model.search_locations(params['locations'])
-          model.locate(search_locs)
-        else
-          #Generic SearchModel
-          layer = Layer.find_by_name(rule.layer)
-          @seltopic = @topic_name
-          @sellayer = layer.name
-          @selproperty = layer.feature_class.primary_key
-          @selscalerange = model.selection_scalerange
-          search_locs = params['locations'].split(',')
-          model.layer_locate(layer, rule.search_field, search_locs)
-        end
-        if features.present?
-          @x, @y, scale = model.map_center(features)
-          @scale = params['scale'].nil? ? scale : params['scale'].to_i
-          #Selection
-          @selbbox = model.bbox(features)
-          @selvalues = features.collect {|f| f.send(model.primary_key) }
+        location = rule.locate(params['locations'])
+        unless location.nil?
+          @seltopic = location[:selection][:topic] || @topic_name
+          @sellayer = location[:selection][:layer]
+          @selproperty = location[:selection][:property]
+          @selvalues = location[:selection][:values]
+          @selscalerange = location[:selection][:scalerange]
+          @x = location[:x]
+          @y = location[:y]
+          @scale = params['scale'].nil? ? location[:scale] : params['scale'].to_i
+          @selbbox = location[:bbox]
         else
           logger.info "no features found."
         end
