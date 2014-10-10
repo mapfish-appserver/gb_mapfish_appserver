@@ -122,7 +122,6 @@ namespace :mapfile do
               puts "Info: Found where filter for layer '#{layer.name}' from data '#{mlayer.data}': '#{tmp_where}'"
               layer.where_filter = tmp_where
           end
-
         elsif mlayer.connectiontype == MS_WMS
           url = mlayer.getWMSFeatureInfoURL(@map, 0, 0, 10, "text/xml")
           #extract necessary params
