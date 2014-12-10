@@ -17,23 +17,22 @@ class Wms
     sld <<    "<UserStyle>"
     sld <<      "<Name>default</Name>"
     sld <<      "<FeatureTypeStyle>"
-
+    sld <<        "<Rule>"
+    sld <<          "<Name>show-selection</Name>"
+    sld <<          '<ogc:Filter>'
+    sld <<            '<ogc:Or>' if filter_values.size > 1
     filter_values.each do |value|
-      # NOTE: use a separate rule for each value as workaround, as combined filter with <ogc:Or> does not work as expected
-      sld <<      "<Rule>"
-      sld <<        "<Name>show-#{value}</Name>"
-      sld <<        '<ogc:Filter>'
       sld <<          "<ogc:PropertyIsEqualTo>"
       sld <<            "<ogc:PropertyName>#{filter_property}</ogc:PropertyName>"
       sld <<            "<ogc:Literal>#{value}</ogc:Literal>"
       sld <<          "</ogc:PropertyIsEqualTo>"
-      sld <<        "</ogc:Filter>"
-      sld << layer.selection_symbolizer
-      sld <<        "<MinScaleDenominator>0</MinScaleDenominator>"
-      sld <<        "<MaxScaleDenominator>999999999</MaxScaleDenominator>"
-      sld <<      "</Rule>"
     end
-
+    sld <<          '</ogc:Or>' if filter_values.size > 1
+    sld <<          "</ogc:Filter>"
+    sld << layer.selection_symbolizer
+    sld <<          "<MinScaleDenominator>0</MinScaleDenominator>"
+    sld <<          "<MaxScaleDenominator>999999999</MaxScaleDenominator>"
+    sld <<        "</Rule>"
     sld <<      "</FeatureTypeStyle>"
     sld <<    "</UserStyle>"
     sld <<  "</NamedLayer>"
