@@ -104,6 +104,24 @@ namespace :mapfile do
           puts "Warning: Couldn't extract table name of layer '#{layer.name}' from data '#{mlayer.data}'" if layer.table.blank?
           mlayer.data =~ /UNIQUE (\w+)/i
           layer.pkey = $1 || 'oid'
+          #extract where statement -if exists
+          mlayer.data =~ /WHERE (.*)?/i
+          tmp_where = $1  #return nil if nothing found
+          if !tmp_where.nil? && !tmp_where.strip.empty?
+              tmp_where = tmp_where.split(/AS/i)[0].split(/USING/i)[0].strip
+              if tmp_where.count("\"").odd?
+                tmp_where = tmp_where.gsub(/^["]/,'').gsub(/["]$/,'') #trim (") at start/end of string 
+              end
+              if tmp_where.count("(") != tmp_where.count(")")
+                  if tmp_where.count("(") < tmp_where.count(")")
+                    tmp_where = tmp_where.gsub(/[)]$/,'') #trim ")" at end of string 
+                  else
+                    tmp_where = tmp_where.gsub(/^[(]/,'') #trim "(" at start of string 
+                  end
+              end
+              puts "Info: Found where filter for layer '#{layer.name}' from data '#{mlayer.data}': '#{tmp_where}'"
+              layer.where_filter = tmp_where
+          end
         elsif mlayer.connectiontype == MS_WMS
           url = mlayer.getWMSFeatureInfoURL(@map, 0, 0, 10, "text/xml")
           #extract necessary params
