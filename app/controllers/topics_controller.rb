@@ -31,8 +31,9 @@ class TopicsController < ApplicationController
   end
 
   def query
-    # optional parameter (default = false) to return only the feature nearest to the center of the search geometry, if no custom layer query is used
-    nearest = params['nearest'] == 'true'
+    # optional parameter to return only the feature nearest to the center of the search geometry, if no custom layer query is used
+    # use layer setting by default
+    nearest = params['nearest'].nil? ? nil : params['nearest'] == 'true'
 
     @query_topics = ActiveSupport::JSON.decode(params[:infoQuery])['queryTopics']
     #e.g. [{"layers"=>"lk25,grenzen,gemeindegrenzen,seen,wald,haltestellen", "divCls"=>"legmain", "level"=>"main", "topic"=>"BASISKARTEZH"}, {"layers"=>"", "divCls"=>"legover", "level"=>"over", "topic"=>"AVParzOverlayZH"}]

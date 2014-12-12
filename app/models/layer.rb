@@ -118,7 +118,10 @@ EOS
     allowed_fields
   end
 
-  def query(ability, query_topic, searchgeo, nearest=false)
+  def query(ability, query_topic, searchgeo, nearest=nil)
+    # use layer setting by default
+    nearest = search_nearest if nearest.nil?
+
     if table =~ /^https?:/
       features = get_feature_info(searchgeo)
       [self, features, searchgeo.split(',')]

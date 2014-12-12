@@ -61,8 +61,18 @@ class GeoModel < ActiveRecord::Base
 
     if nearest
       logger.debug "*** query nearest ***"
-      # get the feature nearest to the center of the search geometry
-      filter = filter.order("ST_Distance(#{table_name}.#{geometry_column_name}, #{center})").limit(1)
+      min_dist = filter.select("Min(ST_Distance(#{table_name}.#{geometry_column_name}, #{center})) AS min_dist").first
+      unless min_dist.nil?
+        logger.debug "*** min_dist = #{min_dist.min_dist} ***"
+        if min_dist.min_dist.to_f == 0
+          # center of the search geometry is within a feature (may be overlapping features)
+          filter = filter.where("ST_Within(#{center}, #{table_name}.#{geometry_column_name})")
+        else
+          # get the feature nearest to the center of the search geometry
+          filter = filter.order("ST_Distance(#{table_name}.#{geometry_column_name}, #{center})").limit(1)
+        end
+      end
+      # else no features in filter
     end
 
     filter

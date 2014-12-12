@@ -179,7 +179,7 @@ class Topic < ActiveRecord::Base
     perms.collect(&:role)
   end
 
-  def query(ability, query_topic, searchbbox, nearest=false)
+  def query(ability, query_topic, searchbbox, nearest=nil)
     active_layers = query_topic['layers'].split(',')
     qlayers = query_layers(ability, active_layers)
     results = []
