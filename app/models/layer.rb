@@ -296,7 +296,7 @@ EOS
     wms_layers.split(',').collect {|l| %Q<"#{l}"> }.join(',')
   end
 
-  DEFAULT_SELECTION_STYLE = {
+  @@default_selection_styles = {
     'POLYGON' =>
       '<PolygonSymbolizer>'+
         '<Fill>'+
@@ -329,11 +329,19 @@ EOS
        '</PointSymbolizer>'
   }
 
+  def self.set_default_selection_styles(styles)
+    @@default_selection_styles = styles
+  end
+
+  def self.default_selection_styles
+    @@default_selection_styles
+  end
+
   def selection_symbolizer
     if selection_style.blank?
       gtyp = feature_class.geometry_type.sub(/^MULTI/, '').sub(/M$/, '') #MULTIPOINTM -> POINT 
-      logger.error "Unsupported selection geometry type #{feature_class.geometry_type}" unless DEFAULT_SELECTION_STYLE.has_key?(gtyp)
-      DEFAULT_SELECTION_STYLE[gtyp] || ''
+      logger.error "Unsupported selection geometry type #{feature_class.geometry_type}" unless self.class.default_selection_styles.has_key?(gtyp)
+      self.class.default_selection_styles[gtyp] || ''
     else
       selection_style
     end
