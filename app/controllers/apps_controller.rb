@@ -1,5 +1,7 @@
 class AppsController < ApplicationController
 
+  before_filter :redirect_to_https_if_signed_in
+
   def show
     @current_roles = current_roles.roles.collect(&:name)
 
@@ -61,6 +63,17 @@ class AppsController < ApplicationController
     session[:map_ts] = Time.now # Used for checking access to non-public WMS
 
     render :action => @app, :layout => false
+  end
+
+  private
+
+  def redirect_to_https_if_signed_in
+    if REDIRECT_APP_TO_HTTPS_IF_SIGNED_IN && user_signed_in?
+      # redirect to HTTPS if user is logged in
+      unless request.ssl?
+        redirect_to :protocol => 'https://', :status => :temporary_redirect
+      end
+    end
   end
 
 end

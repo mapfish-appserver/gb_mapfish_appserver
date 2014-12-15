@@ -5,6 +5,9 @@ HOST_ZONE = {
 }
 HOST_ZONE.default = SITE_DEFAULT
 
+# redirect app to HTTPS if user is logged in
+REDIRECT_APP_TO_HTTPS_IF_SIGNED_IN = false
+
 #Hostnames in image links (e.g. identify symbol) which should be replaced by 127.0.0.1 for printing
 LOCAL_GRAPHICS_HOST = /<%= options["default-site-name"] %>/
 
