@@ -71,7 +71,7 @@ class AppsController < ApplicationController
     if REDIRECT_APP_TO_HTTPS_IF_SIGNED_IN && user_signed_in?
       # redirect to HTTPS if user is logged in
       unless request.ssl?
-        redirect_to :protocol => 'https://', :status => :temporary_redirect
+        redirect_to params.merge({:protocol => 'https://'}), :status => :temporary_redirect
       end
     end
   end
