@@ -135,10 +135,17 @@ EOS
         #   customParams: {'tiefe': 25}
         #  }]}
         custom_query_method = query_topic['customQueries'][name] rescue nil
-        logger.debug "******** #{feature_class} ***************************************************"
+        logger.debug "******** feature_class: #{feature_class} ***************************************************"
+        logger.debug "******** Layer: #{name} ***************************************************"
+        logger.debug "******** custom_query_method: #{custom_query_method} ***************************************************"
+        logger.debug "******** query_topic: #{query_topic} ***************************************************"
         features = if custom_query_method
-          logger.debug "*** Custom query on layer #{name}: #{query_topic.inspect}"
-          feature_class.send(custom_query_method, self, query_topic, searchgeo) 
+          filter_sql_where = query_topic['customParams']['filterSqlWhere'] rescue ''
+          if filter_sql_where != ''
+            feature_class.identify_filter(searchgeo, searchdistance, nearest).where(filter_sql_where).select(query_fields(ability)).all
+          else
+            feature_class.send(custom_query_method, self, query_topic, searchgeo)
+          end
         elsif feature_class.respond_to?(:identify_query)
           logger.debug "*** Custom identify_query on layer #{name}"
           feature_class.identify_query(searchgeo, searchdistance)
