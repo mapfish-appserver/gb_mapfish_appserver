@@ -165,6 +165,10 @@ class WmsController < ApplicationController
           end
           true
         end
+      elsif user_signed_in?
+        # user has just signed in via basic auth or token, and there is no session yet
+        logger.info "User '#{current_user.try(:login)}' just signed in, no session yet"
+        true
       else
         logger.info "No session info! headers #{@zone}: #{request.headers.inspect}" 
         false
