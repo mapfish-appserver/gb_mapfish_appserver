@@ -346,7 +346,7 @@ class PrintController < ApplicationController
 
       begin
         logger.info "Forward request: #{report_url}"
-        result = Net::HTTP.get_response(URI.parse(URI.decode(report_url)))
+        result = Net::HTTP.get_response(URI.parse(report_url))
         result["pdfid"] = pdfid
      rescue => err
         logger.info("#{err.class}: #{err.message}")
