@@ -144,9 +144,9 @@ class GeoModel < ActiveRecord::Base
   end
 
   def self.can_edit?(ability)
-    @@layers ||= Layer.where(:table => self.table_name).all
+    @layers ||= Layer.where(:table => self.table_name).all
     can_edit = false
-    @@layers.each do |layer|
+    @layers.each do |layer|
       # check if any layer with this table is editable
       if ability.can?(:edit, layer)
         can_edit = true
