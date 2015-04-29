@@ -3,6 +3,9 @@ class UsersController < ApplicationController
   before_filter :authenticate_user!
   before_filter :accessible_user, :except => [:find]
 
+  def show
+  end
+
   def edit
   end
 

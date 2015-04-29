@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   resources :groups_users do
     get :register, :on => :collection
   end
+  match 'groups/:group' => 'groups_users#show_group', :as => :group
   resources :users do
     get :find, :on => :collection
   end

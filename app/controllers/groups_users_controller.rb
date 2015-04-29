@@ -132,6 +132,12 @@ class GroupsUsersController < ApplicationController
     redirect_to user_confirm_path
   end
 
+  # show and manage users for a group
+  def show_group
+    @group = @groups.find(params[:group])
+    @groups_users = GroupsUser.where(:group_id => @group).joins(:group, :user).order('groups.name,users.login')
+  end
+
   private
 
   def accessible_groups

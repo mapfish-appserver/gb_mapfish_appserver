@@ -1,63 +1,73 @@
-<h2>Benutzer bearbeiten</h2>
-
-<%= form_for @user do |f| %>
-  <% if @user.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this groups_user from being saved:</h2>
-
-      <ul>
-        <% @user.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div class="row">
-    <%= f.label 'Login' %>
-    <div class="input uneditable-input">
-      <%= @user.login %>
-    </div>
-  </div>
-
-  <div class="row">
-    <%= f.label 'Name' %>
-    <div class="input uneditable-input">
-      <%= @user.name %>
-    </div>
-  </div>
-
-  <div class="row">
-    <%= f.label 'E-Mail' %>
-    <div class="input uneditable-input">
-      <%= @user.email %>
-    </div>
-  </div>
-
-  <% if current_user.id == @user.id %>
-    <%= link_to "Bearbeiten", edit_user_registration_path(current_user) %>
-  <% end %>
-
-  <% @user.groups_users.each do |groups_user| %>
-    <% next if groups_user.group.nil? %>
-    <% if File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name)) && (@user.id == current_user.id || current_user.group_admin?(groups_user.group)) %>
-    <fieldset>
-      <legend><%= groups_user.group.name %> (<%= groups_user.granted ? "freigeschaltet" : "nicht freigeschaltet" %>)</legend>
-      <%= render :partial => "registrations/#{groups_user.group.name}/app_infos", :locals => {:f => f} %>
-      <%# show user filter fields to group admins only %>
-      <% if current_user.group_admin?(groups_user.group) && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name, '_filters.html.erb')) %>
-        <div class="row">
-          <b><%= f.label "Filter" %></b>
-        </div>
-        <%= render :partial => "registrations/#{groups_user.group.name}/filters", :locals => {:f => f} %>
-      <% end %>
-    </fieldset>
-    <% end %>
-  <% end %>
-
-  <div class="actions">
-    <%= f.submit "Benutzer speichern" %>
-  </div>
+<% content_for :head do %>
+  <style type="text/css">
+    <%# styles for existing app info partial forms %>
+    .form-app-infos .row {
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 15px;
+    }
+    .form-app-infos .row input, .form-app-infos .row textarea {
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+        color: #555;
+        display: block;
+        font-size: 14px;
+        height: 34px;
+        line-height: 1.42857;
+        padding: 6px 12px;
+        transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+        width: 100%;
+    }
+    .form-app-infos .row textarea {
+      height: auto;
+    }
+  </style>
 <% end %>
 
-<%= link_to 'Zurück', groups_users_path %>
+<div class="page-header">
+  <h1>Benutzer bearbeiten</h1>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Benutzer</div>
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <dt>Login</dt>
+      <dd><%= @user.login %></dd>
+      <dt>Name</dt>
+      <dd><%= @user.name %></dd>
+      <dt>E-Mail</dt>
+      <dd><%= @user.email %></dd>
+      <% if current_user.id == @user.id %>
+        <dt></dt>
+        <dd>&nbsp;</dd>
+        <dt></dt>
+        <dd><%= link_to "Login-Daten bearbeiten", edit_user_registration_path(current_user), :class => 'btn btn-primary' %></dd>
+      <% end %>
+    </dl>
+  </div>
+</div>
+
+<% @user.groups_users.each do |groups_user| %>
+  <% next if groups_user.group.nil? %>
+  <% if File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name)) && (@user.id == current_user.id || current_user.group_admin?(groups_user.group)) %>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Benutzerdaten für Gruppe <%= groups_user.group.name %> (<%= groups_user.granted ? "freigeschaltet" : "nicht freigeschaltet" %>)
+      </div>
+      <div class="panel-body">
+        <%= form_for @user, :html => {:class => 'form-app-infos'} do |f| %>
+          <%= render :partial => "registrations/#{groups_user.group.name}/app_infos", :locals => {:f => f} %>
+          <% if current_user.group_admin?(groups_user.group) && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', groups_user.group.name, '_filters.html.erb')) %>
+            <h4>Filter</h4>
+            <%= render :partial => "registrations/#{groups_user.group.name}/filters", :locals => {:f => f} %>
+          <% end %>
+          <%= f.submit "Benutzerdaten speichern", :class => 'btn btn-primary' %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

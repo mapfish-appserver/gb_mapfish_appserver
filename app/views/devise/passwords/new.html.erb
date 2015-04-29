@@ -1,12 +1,37 @@
-<h2>Passwort vergessen?</h2>
+<div class="page-header">
+  <h1>Passwort vergessen?</h1>
+</div>
 
-<%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post }) do |f| %>
-  <%= devise_error_messages! %>
-
-  <div class="row"><%= f.label :email %>
-  <%= f.text_field :email %></div>
-
-  <div class="row"><%= f.submit "Link zum Rücksetzen des Passworts" %></div>
+<% unless resource.errors.empty? %>
+    <div class="alert alert-danger">
+      <ul>
+      <% resource.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
 <% end %>
 
-<%= render :partial => "devise/shared/links" %>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :post, :class => 'form-horizontal' }) do |f| %>
+      <div class="form-group">
+        <%= f.label :email, "E-Mail", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.text_field :email, :class => 'form-control' %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <%= f.submit "Link zum Rücksetzen des Passworts", :class => 'btn btn-primary' %>
+        </div>
+      </div>
+
+      <hr/>
+
+      <%= render :partial => "devise/shared/links" %>
+
+    <% end %>
+  </div>
+</div>

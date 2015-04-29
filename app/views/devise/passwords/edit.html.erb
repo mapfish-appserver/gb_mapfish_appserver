@@ -1,16 +1,46 @@
-<h2>Passwort setzen</h2>
+<div class="page-header">
+  <h1>Passwort setzen</h1>
+</div>
 
-<%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :put }) do |f| %>
-  <%= devise_error_messages! %>
-  <%= f.hidden_field :reset_password_token %>
-
-  <p><%= f.label :password %><br />
-  <%= f.password_field :password %></p>
-
-  <p><%= f.label :password_confirmation %><br />
-  <%= f.password_field :password_confirmation %></p>
-
-  <p><%= f.submit "Passwort setzen" %></p>
+<% unless resource.errors.empty? %>
+    <div class="alert alert-danger">
+      <ul>
+      <% resource.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
 <% end %>
 
-<%= render :partial => "devise/shared/links" %>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <%= form_for(resource, :as => resource_name, :url => password_path(resource_name), :html => { :method => :put, :class => 'form-horizontal' }) do |f| %>
+      <%= f.hidden_field :reset_password_token %>
+
+      <div class="form-group">
+        <%= f.label :password, "Passwort", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.password_field :password, :class => 'form-control' %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :password_confirmation, "Passwortbestätigung", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.password_field :password_confirmation, :class => 'form-control' %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <%= f.submit "Passwort setzen", :class => 'btn btn-primary' %>
+        </div>
+      </div>
+
+      <hr/>
+
+      <%= render :partial => "devise/shared/links" %>
+
+    <% end %>
+  </div>
+</div>

@@ -1,17 +1,50 @@
-<h2>Sign in</h2>
+<div class="page-header">
+  <h1>Login</h1>
+</div>
 
-<%= form_for(resource, :as => resource_name, :url => session_path(resource_name)) do |f| %>
-  <div class="row"><%= f.label :login %>
-  <%= f.text_field :login %></div>
+<div class="row">
+  <div class="col-md-offset-2 col-md-8">
+    <div class="panel panel-default">
+      <div class="panel-body">
 
-  <div class="row"><%= f.label :password %>
-  <%= f.password_field :password %></div>
+        <%= form_for(resource, :as => resource_name, :url => session_path(resource_name), :html => {:class => 'form-horizontal'}) do |f| %>
+          <div class="form-group">
+            <%= f.label :login, :class => 'col-sm-2 control-label' %>
+            <div class="col-sm-8">
+              <%= f.text_field :login, :class => 'form-control' %>
+            </div>
+          </div>
+          <div class="form-group">
+            <%= f.label :password, :class => 'col-sm-2 control-label' %>
+            <div class="col-sm-8">
+              <%= f.password_field :password, :class => 'form-control' %>
+            </div>
+          </div>
+          <% if devise_mapping.rememberable? -%>
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-8">
+                <div class="checkbox">
+                  <label>
+                    <%= f.check_box :remember_me %> Angemeldet bleiben
+                  </label>
+                </div>
+              </div>
+            </div>
+          <% end %>
 
-  <% if devise_mapping.rememberable? -%>
-    <div class="row"><%= f.check_box :remember_me %> <%= f.label :remember_me %></div>
-  <% end -%>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <%= f.submit "Login", :class => 'btn btn-primary' %>
+            </div>
+          </div>
 
-  <div class="row"><%= f.submit "Sign in" %></div>
-<% end %>
+          <hr/>
 
-<%= render :partial => "devise/shared/links" %>
+          <%= render :partial => "devise/shared/links" %>
+
+        <% end %>
+
+      </div>
+    </div>
+  </div>
+</div>

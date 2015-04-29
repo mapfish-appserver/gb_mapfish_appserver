@@ -1,0 +1,62 @@
+<div class="page-header">
+  <h1>Benutzer <small><%= @user.login %></small></h1>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Benutzer</div>
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <dt>Login</dt>
+      <dd><%= @user.login %></dd>
+      <dt>Name</dt>
+      <dd><%= @user.name %></dd>
+      <dt>E-Mail</dt>
+      <dd><%= @user.email %></dd>
+
+      <% unless @user.app_infos.nil? %>
+        <dt></dt>
+        <dd>&nbsp;</dd>
+        <% @user.app_infos.sort.each do |key, value| %>
+          <dt><%= key %></dt>
+          <dd><%= value %></dd>
+        <% end %>
+      <% end %>
+
+      <% if current_user.id == @user.id %>
+        <dt></dt>
+        <dd>&nbsp;</dd>
+        <dt></dt>
+        <dd><%= link_to "Bearbeiten", edit_user_path(current_user), :class => 'btn btn-primary' %></dd>
+      <% end %>
+    </dl>
+  </div>
+</div>
+
+<% if current_user.id == @user.id %>
+  <div class="panel panel-default">
+    <div class="panel-heading">Eigene Gruppen</div>
+    <div class="panel-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Gruppe</th>
+            <th>Freigeschaltet</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @user.groups_users.each do |groups_user| %>
+            <% next if groups_user.group.nil? %>
+            <tr>
+              <td><%= groups_user.group.name %></td>
+              <td>
+                <span class="label label-<%= groups_user.granted ? 'success' : 'danger' %>">
+                  <%= groups_user.granted ? "ja" : "nein" %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

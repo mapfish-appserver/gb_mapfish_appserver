@@ -1,44 +1,41 @@
 <% content_for :head do %>
-<script type="text/javascript">
-  $(function() {
-    $('#user_email').autocomplete({
-      source: '/users/find.json',
-      minLength: 3
+  <%= javascript_include_tag 'jquery.ui.autocomplete' %>
+  <%= stylesheet_link_tag 'jquery.ui.autocomplete' %>
+  <script type="text/javascript">
+    $(function() {
+      $('#user_email').autocomplete({
+        source: '/users/find.json',
+        minLength: 3
+      });
     });
-  });
-</script>
+  </script>
 <% end %>
 
-<h1>Benutzer zu Gruppe hinzufügen</h1>
+<div class="page-header">
+  <h1>Benutzer zu Gruppe hinzufügen</h1>
+</div>
 
-<%= form_for(@groups_user) do |f| %>
-  <% if @groups_user.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@groups_user.errors.count, "error") %> prohibited this groups_user from being saved:</h2>
-
-      <ul>
-        <% @groups_user.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <%= f.hidden_field :group_id, :value => @group.id %>
-  <div class="row">
-    <%= f.label 'Gruppe' %>
-    <div class="input uneditable-input">
-      <%= @groups_user.group.name %>
-    </div>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <%= form_for(@groups_user, :html => {:class => 'form-horizontal'}) do |f| %>
+      <%= f.hidden_field :group_id, :value => @group.id %>
+      <div class="form-group">
+        <%= f.label 'Gruppe', :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <p class="form-control-static"><%= @groups_user.group.name %></p>
+        </div>
+      </div>
+      <div class="form-group">
+        <%= f.label :user_email, 'Benutzer E-Mail', :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= text_field_tag :user_email, nil, :class => 'form-control' %>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <%= f.submit "Benutzer hinzufügen", :class => 'btn btn-primary' %>
+        </div>
+      </div>
+    <% end %>
   </div>
-  <div class="row">
-    <%= f.label :user_email, 'Benutzer E-Mail' %>
-    <%= text_field_tag :user_email %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Benutzer hinzufügen" %>
-  </div>
-<% end %>
-
-<%= link_to 'Zurück', groups_users_path %>
+</div>

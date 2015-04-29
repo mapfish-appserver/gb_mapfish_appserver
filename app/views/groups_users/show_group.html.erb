@@ -1,0 +1,77 @@
+<% content_for :head do %>
+  <style type="text/css">
+    .user_app_infos .dl-horizontal dt {
+      width: 100px;
+    }
+    .user_app_infos .dl-horizontal dd {
+      margin-left: 120px;
+    }
+  </style>
+<% end %>
+
+<div class="page-header">
+  <h1>Benutzergruppe <small><%= @group.name %></small></h1>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Registrier-Link</div>
+  <div class="panel-body">
+    <%= link_to new_user_registration_url(:group => @group.name), new_user_registration_path(:group => @group.name) %>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Benutzer</div>
+  <div class="panel-body">
+
+    <%= link_to 'Benutzer hinzufügen', new_groups_user_path({:group => @group}), :class => 'btn btn-primary' %>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Login</th>
+          <th>Benutzer</th>
+          <th>E-Mail</th>
+          <th>Freigeschaltet</th>
+          <th>Info</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @groups_users.each do |groups_user| %>
+          <tr>
+            <td><%= groups_user.user.login %></td>
+            <td><%= groups_user.user.name %></td>
+            <td><%= groups_user.user.email %></td>
+            <td>
+              <span class="label label-<%= groups_user.granted ? 'success' : 'danger' %>">
+                <%= groups_user.granted ? "ja" : "nein" %>
+              </span>
+            </td>
+            <td class="user_app_infos">
+              <% unless groups_user.user.app_infos.nil? %>
+                <dl class="dl-horizontal">
+                  <% groups_user.user.app_infos.sort.each do |key, value| %>
+                    <dt><%= key %></dt>
+                    <dd><%= value %></dd>
+                  <% end %>
+                </dl>
+              <% end %>
+            </td>
+            <td>
+              <%= link_to "Freigabe", edit_groups_user_path(groups_user), :class => 'btn btn-primary' %>
+            </td>
+            <td>
+              <%= link_to "Bearbeiten", edit_user_path(groups_user.user), :class => 'btn btn-default' %>
+            </td>
+            <td>
+              <%= link_to "Entfernen", groups_user, :confirm => 'Benutzer aus Gruppe entfernen?', :method => :delete, :class => 'btn btn-danger' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

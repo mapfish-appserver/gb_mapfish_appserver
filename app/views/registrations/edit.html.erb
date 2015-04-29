@@ -1,55 +1,75 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<div class="page-header">
+  <h1>Login-Daten bearbeiten</h1>
+</div>
 
-<%= form_for(resource, :as => resource_name, :url => registration_path(resource_name), :html => { :method => :put }) do |f| %>
-	<%= devise_error_messages! %>
-	
-	<div class="row">
-		<%= f.label :login %>
-		<%= f.text_field :login %>
-	</div>
-	
-	<div class="row">
-		<%= f.label :email %>
-		<%= f.text_field :email %>
-	</div>
-	
-	<div class="row">
-		<%= f.label :password %> <i>(leave blank if you don't want to change it)</i>
-		<%= f.password_field :password %>
-	</div>
-	
-	<div class="row">
-		<%= f.label :password_confirmation %>
-		<%= f.password_field :password_confirmation %>
-	</div>
-	
-	<div class="row">
-		<%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i>
-		<%= f.password_field :current_password %>
-	</div>
-	
-	<div class="row">
-		<%= f.submit "Update" %>
-	</div>
+<div class="panel panel-default">
+  <div class="panel-heading">Benutzer</div>
+  <div class="panel-body">
+    <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name), :html => { :method => :put, :class => 'form-horizontal' }) do |f| %>
+      <div class="form-group">
+        <%= f.label :login, "Benutzername", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <p class="form-control-static"><%= resource.login %></p>
+        </div>
+      </div>
 
-	<div class="row">
-		<%= f.label :token_authentication_key %>
-	  	<p><%= resource.authentication_token.blank? ? "Token Empty" : resource.authentication_token %></p>
-	</div>
+      <div class="form-group">
+        <%= f.label :email, "E-Mail", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <p class="form-control-static"><%= resource.email %></p>
+        </div>
+      </div>
 
-	<div class="row">
-  		<%= link_to "Generate Token", token_authentications_path(:user_id => resource.id), :method => :post, :confirm => "Are you sure?"  %>
-  		<%= link_to "Delete Token", token_authentication_path(resource), :method => :delete, :confirm => "Are you sure?"  %>
-	</div>
+      <div class="form-group">
+        <%= f.label :password, "Passwort", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.password_field :password, :class => 'form-control' %>
+          <span class="help-block">freilassen, wenn Sie das nicht ändern wollen</span>
+        </div>
+      </div>
 
-	<div class="row">
-		<% if resource.authentication_token %>
-			<p>You can use this url to login<br />
-			<%= link_to "http://maps.zh.ch#{root_path(:user_token => resource.authentication_token)}", root_path(:user_token => resource.authentication_token)  %></p>
-		<% end %>
-	</div>
+      <div class="form-group">
+        <%= f.label :password_confirmation, "Passwortbestätigung", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.password_field :password_confirmation, :class => 'form-control' %>
+        </div>
+      </div>
 
+      <div class="form-group">
+        <%= f.label :current_password, "Bisheriges Passwort", :class => 'col-sm-2 control-label' %>
+        <div class="col-sm-8">
+          <%= f.password_field :current_password, :class => 'form-control' %>
+          <span class="help-block">wir benötigen Ihr aktuelles Passwort, um die Änderung zu bestätigen</span>
+        </div>
+      </div>
 
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <%= f.submit "Speichern", :class => 'btn btn-primary' %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
 
-
+<%# FIXME: generating tokens does not work %>
+<% if false %>
+<div class="panel panel-default">
+  <div class="panel-heading">Token</div>
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+      <dt>Token</dt>
+      <dd><%= resource.authentication_token.blank? ? "Kein Token" : resource.authentication_token %></dd>
+      <dt></dt>
+      <dd>&nbsp;</dd>
+      <dt></dt>
+      <dd><%= link_to "Token erzeugen", token_authentications_path(:user_id => resource.id), :method => :post, :confirm => "Sind Sie sicher?", :class => 'btn btn-default' %>
+      <%= link_to "Token löschen", token_authentication_path(resource), :method => :delete, :confirm => "Sind Sie sicher?", :class => 'btn btn-danger' %></dd>
+    </dl>
+    <% if resource.authentication_token %>
+      Sie können diese URL zum Anmelden benutzen
+      <%= link_to "http://maps.zh.ch#{root_path(:user_token => resource.authentication_token)}", root_path(:user_token => resource.authentication_token) %>
+    <% end %>
+  </div>
+</div>
 <% end %>

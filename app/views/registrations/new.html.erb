@@ -1,56 +1,112 @@
-<h2>Registrierung für Gruppe <%= @group.name %></h2>
-
-<h3>Neue Registrierung</h3>
-
-<%= form_for(resource, :as => resource_name, :url => registration_path(resource_name)) do |f| %>
-	<%= devise_error_messages! %>
-	
-	<%= f.hidden_field :requested_group, :value => @group.id if @group %>
-	
-	<div class="row">
-		<%= f.label :login %>
-		<%= f.text_field :login %>
-	</div>
-
-	<div class="row">
-		<%= f.label :name %>
-		<%= f.text_field :name %>
-	</div>
-
-	<div class="row">
-		<%= f.label :email %>
-		<%= f.text_field :email %>
-	</div>
-
-	<% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
-	  <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
-	<% end %>
-
-	<div class="row">
-		<%= f.label :password %>
-		<%= f.password_field :password %>
-	</div>
-
-	<div class="row">
-		<%= f.label :password_confirmation %>
-		<%= f.password_field :password_confirmation %>
-	</div>
-	
-	<div class="row">
-		<%= f.submit "Registrieren", :class => 'big-submit' %>
-	</div>
+<% content_for :head do %>
+  <style type="text/css">
+    <%# styles for existing app info partial forms %>
+    .form-app-infos .row {
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 15px;
+    }
+    .form-app-infos .row input, .form-app-infos .row textarea {
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+        color: #555;
+        display: block;
+        font-size: 14px;
+        height: 34px;
+        line-height: 1.42857;
+        padding: 6px 12px;
+        transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+        width: 100%;
+    }
+    .form-app-infos .row textarea {
+      height: auto;
+    }
+    .field_with_errors {
+      color: #a94442;
+    }
+  </style>
 <% end %>
 
-<h3>Bestehendes Konto verwenden</h3>
+<div class="page-header">
+  <h1>Registrierung für Gruppe <%= @group.name %></h1>
+</div>
 
-<%= form_for(@group, :method => :get, :url => register_groups_users_path) do |f| %>
-  <%= f.hidden_field :requested_group, :value => @group.id if @group %>
+<% unless resource.errors.empty? %>
+    <div class="alert alert-danger">
+      <h4>Benutzer konnte nicht registriert werden:</h4>
+      <ul>
+      <% resource.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+<% end %>
 
-  <% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
-    <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
-  <% end %>
+<% unless user_signed_in? %>
+  <p><%= link_to "Bestehendes Konto verwenden", "#existing_account" %></p>
 
-  <div class="row">
-    <%= f.submit "Anmelden", :class => 'big-submit' %>
+  <div class="panel panel-default">
+    <div class="panel-heading">Neue Registrierung</div>
+    <div class="panel-body">
+      <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name), :html => {:class => 'form-app-infos'}) do |f| %>
+        <%= f.hidden_field :requested_group, :value => @group.id if @group %>
+
+        <div class="form-group">
+          <%= f.label :login, "Benutzername" %>
+          <%= f.text_field :login, :class => 'form-control' %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :name, "Name" %>
+          <%= f.text_field :name, :class => 'form-control' %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :email, "E-Mail" %>
+          <%= f.text_field :email, :class => 'form-control' %>
+        </div>
+
+        <% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
+          <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
+        <% end %>
+
+        <div class="form-group">
+          <%= f.label :password, "Passwort" %>
+          <%= f.password_field :password, :class => 'form-control' %>
+        </div>
+
+        <div class="form-group">
+          <%= f.label :password_confirmation, "Passwortbestätigung" %>
+          <%= f.password_field :password_confirmation, :class => 'form-control' %>
+        </div>
+
+        <a name="existing_account"></a>
+
+        <%= f.submit "Registrieren", :class => 'btn btn-primary' %>
+      <% end %>
+    </div>
   </div>
 <% end %>
+
+<div class="panel panel-default">
+  <div class="panel-heading">Bestehendes Konto verwenden</div>
+  <div class="panel-body">
+    <%= form_for(@group, :method => :get, :url => register_groups_users_path, :html => {:class => 'form-app-infos'}) do |f| %>
+      <%= f.hidden_field :requested_group, :value => @group.id if @group %>
+
+      <% if @group && File.exist?(File.join(Rails.root, 'app', 'views', 'registrations', @group.name)) %>
+        <span class="help-block">Ergänzen Sie bitte fehlende Benutzerdaten für diese Gruppe</span>
+        <% @user = current_user if user_signed_in? %><%# NOTE: manually set @user to fill in form fields %>
+        <%= render :partial => "registrations/#{@group.name}/app_infos", :locals => {:f => f} %>
+      <% end %>
+
+      <% unless user_signed_in? %>
+        <span class="help-block">Bitte melden Sie sich auf der folgenden Seite an, um die Registrierung für die Gruppe abzuschliessen.</span>
+      <% end %>
+      <%= f.submit "Anmelden", :class => 'btn btn-primary' %>
+    <% end %>
+  </div>
+</div>
