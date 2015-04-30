@@ -30,7 +30,7 @@
     <%= f.label "Email", :class => 'col-sm-2 control-label' %>
     <div class="col-sm-8">
       <p class="form-control-static">
-        <a href="mailto:<%= @groups_user.user.email %>?Subject=Best&auml;tigung&Body=<%= render @mail_body %>"><%= @groups_user.user.email %></a>
+        <%= @groups_user.user.email %>
       </p>
     </div>
   </div>
@@ -48,7 +48,8 @@
 
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <%= f.submit "Speichern", :class => 'btn btn-primary' %>
+      <a href="mailto:<%= @groups_user.user.email %>?Subject=Best&auml;tigung&Body=<%= render @mail_body %>" class="btn btn-primary">Bestätigungsnachricht verfassen...</a>
+      <%= f.submit "Freigabe speichern", :class => 'btn btn-primary' %>
     </div>
   </div>
 <% end %>
