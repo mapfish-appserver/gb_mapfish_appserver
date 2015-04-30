@@ -74,7 +74,7 @@ class GroupsUsersController < ApplicationController
 
     respond_to do |format|
       if @groups_user.save
-        format.html { redirect_to groups_users_url, :notice => 'Benutzer wurde erfolgreich zur Gruppe hinzugefügt.' }
+        format.html { redirect_to group_path(@groups_user.group), :notice => 'Benutzer wurde erfolgreich zur Gruppe hinzugefügt.' }
         format.json { render :json => @groups_user, :status => :created, :location => @groups_user }
       else
         format.html { render :action => "new" }
@@ -91,7 +91,7 @@ class GroupsUsersController < ApplicationController
 
     respond_to do |format|
       if @groups_user.update_attributes(params[:groups_user])
-        format.html { redirect_to groups_users_url, :notice => 'Groups user was successfully updated.' }
+        format.html { redirect_to group_path(@groups_user.group), :notice => 'Gruppenfreigabe wurde erfolgreich gespeichert.' }
         format.json { head :ok }
       else
         format.html { render :action => "edit" }
@@ -105,10 +105,11 @@ class GroupsUsersController < ApplicationController
   def destroy
     @groups = admin_groups(@groups)
     @groups_user = GroupsUser.where(:group_id => @groups).find(params[:id])
+    group = @groups_user.group
     @groups_user.destroy
 
     respond_to do |format|
-      format.html { redirect_to groups_users_url }
+      format.html { redirect_to group_path(group), :notice => "Benutzer wurde erfolgreich aus der Gruppe entfernt." }
       format.json { head :ok }
     end
   end
