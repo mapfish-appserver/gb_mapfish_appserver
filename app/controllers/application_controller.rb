@@ -60,18 +60,20 @@ class ApplicationController < ActionController::Base
   end
 
   def after_sign_in_path_for(resource)
-    if request.xhr? || host_zone(request.host) == SITE_DEFAULT #Workaround for internet behaviour
+    if request.xhr?
+      # logged in via AJAX
       user_login_path
     else
-      stored_location_for(resource) || root_path
+      stored_location_for(resource) || user_path(current_user)
     end
   end
 
   def after_sign_out_path_for(resource)
     if request.xhr?
+      # logged out via AJAX
       user_logout_path
     else
-      stored_location_for(resource) || root_path
+      stored_location_for(resource) || new_user_session_path
     end
   end
 
