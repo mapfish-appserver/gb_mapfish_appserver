@@ -82,7 +82,7 @@ class PrintController < ApplicationController
 
           topic = Topic.find_by_name(topic_name)
           add_sld_body(topic, layer)
-          add_filter(topic, layer)
+          add_filter(topic_name, layer)
 
           # For permission check in WMS controller: pass session as WMS request parameter
           #layer["customParams"]["session"] =
@@ -226,8 +226,8 @@ class PrintController < ApplicationController
     end
   end
 
-  def add_filter(topic, layer)
-    filters = Wms.access_filters(current_ability, current_user, topic, layer["layers"])
+  def add_filter(topic_name, layer)
+    filters = Wms.access_filters(current_ability, current_user, topic_name, layer["layers"])
     if filters.any?
       filters.each do |key, value|
         # remove existing filter
