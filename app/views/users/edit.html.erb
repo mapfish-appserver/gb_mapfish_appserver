@@ -45,11 +45,25 @@
         <dt></dt>
         <dd>&nbsp;</dd>
         <dt></dt>
-        <dd><%= link_to "Login-Daten bearbeiten", edit_user_registration_path(current_user), :class => 'btn btn-primary' %></dd>
+        <dd><%= link_to "Passwort ändern", edit_user_registration_path(current_user), :class => 'btn btn-primary' %></dd>
       <% end %>
     </dl>
   </div>
 </div>
+
+<% if current_user.id == @user.id %>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <%= form_for @user, :html => {:class => 'form-app-infos'} do |f| %>
+        <div class="row">
+          <%= f.label "Name" %>
+          <%= f.text_field :name %>
+        </div>
+        <%= f.submit "Name speichern", :class => 'btn btn-primary' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
 
 <% @user.groups_users.each do |groups_user| %>
   <% next if groups_user.group.nil? %>

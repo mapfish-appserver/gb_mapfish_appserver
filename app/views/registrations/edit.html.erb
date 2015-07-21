@@ -1,5 +1,15 @@
+<% unless resource.errors.empty? %>
+  <div class="alert alert-danger" role="alert">
+    <ul>
+      <% resource.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
 <div class="page-header">
-  <h1>Login-Daten bearbeiten</h1>
+  <h1>Passwort ändern</h1>
 </div>
 
 <div class="panel panel-default">
@@ -7,7 +17,7 @@
   <div class="panel-body">
     <%= form_for(resource, :as => resource_name, :url => registration_path(resource_name), :html => { :method => :put, :class => 'form-horizontal' }) do |f| %>
       <div class="form-group">
-        <%= f.label :login, "Benutzername", :class => 'col-sm-2 control-label' %>
+        <%= f.label :login, "Login", :class => 'col-sm-2 control-label' %>
         <div class="col-sm-8">
           <p class="form-control-static"><%= resource.login %></p>
         </div>
