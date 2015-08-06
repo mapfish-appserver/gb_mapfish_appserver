@@ -25,7 +25,15 @@ class User < ActiveRecord::Base
   before_create :add_requested_group
 
   def has_role?(rolename)
-    roles.any? { |role| role.name == rolename.to_s }
+    has_role = roles.any? { |role| role.name == rolename.to_s }
+    unless has_role
+      # check roles from groups
+      groups.each do |group|
+        has_role = group.roles.any? { |role| role.name == rolename.to_s }
+        break if has_role
+      end
+    end
+    has_role
   end
 
   def group_admin?(group)
