@@ -53,14 +53,14 @@ class GeoController < ApplicationController
   end
 
   def update
-    feature = geo_model.user_filter(current_ability).geojson_decode(request.raw_post)
+    feature = geo_model.geojson_decode(request.raw_post)
     if feature.nil?
       head :bad_request
       return
     end
 
     if feature.feature_id.is_a? Integer
-      @feature = geo_model.find(feature.feature_id)
+      @feature = geo_model.user_filter(current_ability).find_by_id(feature.feature_id)
     end
     if @feature.nil?
       head :not_found
