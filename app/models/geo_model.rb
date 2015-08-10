@@ -84,8 +84,14 @@ class GeoModel < ActiveRecord::Base
   #end
 
   def bbox
-    envelope = GeoRuby::SimpleFeatures::Geometry.from_hex_ewkb(extent).envelope #TODO: replace with rgeo
-    [envelope.lower_corner.x, envelope.lower_corner.y, envelope.upper_corner.x, envelope.upper_corner.y]
+    box_query = "Box2D(#{connection.quote_column_name(self.class.geometry_column_name)})"
+    extent = self.class.select("ST_XMin(#{box_query}), ST_YMin(#{box_query}), ST_XMax(#{box_query}), ST_Ymax(#{box_query})").find(id)
+    [
+      extent.st_xmin.to_f,
+      extent.st_ymin.to_f,
+      extent.st_xmax.to_f,
+      extent.st_ymax.to_f
+    ]
   end
 
   # based on mapfish_filter
