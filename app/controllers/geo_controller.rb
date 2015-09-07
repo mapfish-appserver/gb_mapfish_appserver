@@ -46,6 +46,7 @@ class GeoController < ApplicationController
         @features << new_feature
       else
         head :unprocessable_entity
+        return
       end
     end
 
