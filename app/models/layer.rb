@@ -76,6 +76,16 @@ class Layer < ActiveRecord::Base
         self.table_name = '#{table}'
         self.primary_key = '#{pkey}'
 
+        if self.primary_key == 'oid'
+          # include oid in attributes
+          default_scope select("*").select(self.primary_key)
+
+          # return oid as id
+          def id
+            read_attribute(self.class.primary_key)
+          end
+        end
+
         self
       end
 EOS
