@@ -92,6 +92,11 @@ class PrintController < ApplicationController
   end
 
   def create
+    unless check_permissions
+      head :forbidden
+      return
+    end
+
     cleanupTempFiles
 
     # remove Rails params
@@ -179,6 +184,11 @@ class PrintController < ApplicationController
   end
 
   def show
+    unless check_permissions
+      head :forbidden
+      return
+    end
+
     output_format = params[:format]
     type = nil
     if OUTPUT_FORMATS.include?(output_format)
@@ -301,6 +311,12 @@ class PrintController < ApplicationController
       mapfish_config = YAML.load(File.read(@configFile))
       mapfish_config['templates'].keep_if {|k, v| v['attributes'].has_key?('gb_custom_template') }.keys
     end
+  end
+
+  # check permission for printing, e.g. check params to limit reports to user roles
+  # override in descendant classes
+  def check_permissions
+    true
   end
 
   def rewrite_wms_uri(url, use_cgi)
