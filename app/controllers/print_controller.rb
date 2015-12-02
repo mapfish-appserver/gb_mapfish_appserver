@@ -15,12 +15,18 @@ class PrintController < ApplicationController
 
   class JavaError < Exception
     def initialize(cmd, message)
-      super(cmd+"\n"+message)
+      super(cmd + "\n\n" + message)
+    end
+  end
+
+  class MapfishError < Exception
+    def initialize(cmd, message)
+      super(cmd + "\n\n" + message)
     end
   end
 
   def initialize
-    @configFile = "#{Rails.root}/config/print.yml"
+    @configFile = "#{Rails.root}/print/config.yaml"
   end
 
   TMP_PREFIX = "#{PRINT_TMP_PATH}/mfPrintTempFile"
@@ -28,36 +34,58 @@ class PrintController < ApplicationController
   TMP_PURGE_SECONDS = 600
 
   OUTPUT_FORMATS = ["pdf", "png", "jpg", "tif", "gif"]
+  MAPFISH_PRINT_OUTPUT_FORMATS = ["pdf", "png", "tif", "gif", "bmp"]
 
   def info
-    #if PRINT_URL.present?
-    #TODO:  call_servlet(request)
-    cmd = baseCmd + " --clientConfig"
-    result = ""
-    errors = ""
-    status = POpen4::popen4(cmd) do |stdout, stderr, stdin, pid|
+    # return v2 print info format for GbPrintPanel
+    info = {}
+    info['createURL'] = url_for(:protocol => request.protocol, :action=>'create') + '.json'
 
-      result = stdout.readlines.join("\n")
-      errors = stderr.readlines.join("\n")
+    # add output formats
+    info['outputFormats'] = []
+    OUTPUT_FORMATS.each do |output_format|
+      info['outputFormats'] << {:name => output_format}
     end
-    if status.nil? || status.exitstatus != 0
-      raise JavaError.new(cmd, errors)
-    else
-      info = ActiveSupport::JSON.decode(result)
-      info['createURL'] = url_for(:protocol => request.protocol, :action=>'create') + '.json'
-      # add output formats
-      info['outputFormats'] = []
-      OUTPUT_FORMATS.each do |output_format|
-        info['outputFormats'] << {:name => output_format}
-      end
 
-      respond_to do |format|
-        format.json do
-          if params[:var]
-            render :text=>"var "+params[:var]+"="+result+";"
-          else
-            render :json=>info
-          end
+    # add scales
+    info['scales'] = print_scales.collect do |scale|
+      {:name => "1:#{scale}", :value => scale}
+    end
+
+    # add dpis
+    info['dpis'] = print_dpis.collect do |dpi|
+      {:name => "#{dpi}", :value => dpi}
+    end
+
+    # NOTE: load templates directly from YAML instead of parsing the Mapfish Print capabilities
+    mapfish_config = YAML.load(File.read(@configFile))
+
+    # parse layouts
+    info['layouts'] = []
+    mapfish_config['templates'].each do |name, template|
+      # skip non-standard templates
+      next unless template['attributes'].has_key?('gb_standard_template')
+
+      map = template['attributes']['map']
+      # skip if no map
+      next if map.nil?
+
+      info['layouts'] << {
+        :name => name,
+        :map => {
+          :width => map['width'],
+          :height => map['height'],
+        },
+        :rotation => true
+      }
+    end
+
+    respond_to do |format|
+      format.json do
+        if params[:var]
+          render :text => "var #{params[:var]} = #{info.to_json};"
+        else
+          render :json => info
         end
       end
     end
@@ -65,6 +93,12 @@ class PrintController < ApplicationController
 
   def create
     cleanupTempFiles
+
+    # remove Rails params
+    controller = request.parameters.delete('controller')
+    request.parameters.delete('action')
+    request.parameters.delete('format')
+    request.parameters.delete(controller) unless controller.nil?
 
     accessible_topics = Topic.accessible_by(current_ability).collect{ |topic| topic.name }
     layers_to_delete = []
@@ -105,7 +139,6 @@ class PrintController < ApplicationController
     # remove inaccessible layers
     request.parameters["layers"] -= layers_to_delete
 
-    scales = []
     request.parameters["pages"].each do |page|
       # round center coordinates
       page["center"].collect! {|coord| (coord * 100.0).round / 100.0  }
@@ -119,51 +152,29 @@ class PrintController < ApplicationController
       # disclaimer
       topic = Topic.accessible_by(current_ability).where(:name => page["topic"]).first
       page["disclaimer"] = topic.nil? ? Topic.default_print_disclaimer : topic.print_disclaimer
-      # scale
-      scales << page["scale"]
     end
 
-    outputFormat = request.parameters["outputFormat"]
-    request.parameters["outputFormat"] = 'pdf'
+    report = request.parameters["layout"]
+    if print_templates.include?(report)
+      # Mapfish
+      print_params = convert_mapfish_v2_params(request.parameters)
+      output_format = print_params["outputFormat"]
 
-    logger.info request.parameters.to_yaml
+      # add any custom params
+      set_custom_print_params(report, print_params)
 
-    if request.parameters["report"]
-      # JasperReport
-      call_report(request)
-    elsif PRINT_URL.present?
-      # MapFish
-      # FIXME: add custom scales to config file
-      call_servlet(request)
+      # create report
+      temp, temp_id = mapfish_print(print_params)
+
+      # send link to print result
+      respond_to do |format|
+        format.json do
+          render :json => { 'getURL' => url_for(:action => 'show', :id => temp_id) + ".#{output_format}" }
+        end
+      end
     else
-      # MapFish
-      #print-standalone
-      tempId = SecureRandom.random_number(2**31)
-
-      # use temp config file with added custom scales
-      print_config = File.read(@configFile)
-      print_config.gsub!(/scales:/, "scales:\n#{ scales.collect {|s| "  - #{s.to_s}"}.join("\n") }")
-      config_file = TMP_PREFIX + tempId.to_s + "print.yml"
-      File.open(config_file, "w") { |file| file << print_config }
-
-      temp = TMP_PREFIX + tempId.to_s + TMP_SUFFIX
-      cmd = baseCmd(config_file) + " --output=" + temp
-      result = ""
-      errors = ""
-      status = POpen4::popen4(cmd) do |stdout, stderr, stdin, pid|
-        stdin.puts request.parameters.to_json
-        #body = request.body
-        #FileUtils.copy_stream(body, stdin)
-        #body.close
-        stdin.close
-        result = stdout.readlines.join("\n")
-        errors = stderr.readlines.join("\n")
-      end
-      if status.nil? || status.exitstatus != 0
-        raise JavaError.new(cmd, errors)
-      else
-        convert_and_send_link(temp, tempId, request.parameters["dpi"], outputFormat)
-      end
+      # JasperReport
+      call_report(request.parameters["report"], request)
     end
   end
 
@@ -183,24 +194,40 @@ class PrintController < ApplicationController
       when "gif"
         type = 'image/gif'
       end
+    else
+      # invalid format
+      head :bad_request
+      return
     end
     is_mapfish_print_id = (params[:id] =~ /^[0-9]+$/)
     if is_mapfish_print_id
+      # deliver document generated previously by create()
       temp = TMP_PREFIX + params[:id] + ".#{output_format}"
       send_file temp, :type => type, :disposition => 'attachment', :filename => params[:id] + ".#{output_format}"
     else
-      params['report'] = params[:id]
-      result = create_report(request)
-      if result.nil?
-        render :nothing => true, :status => 500
-        return
-      end
+      # create document
+      report = params[:id]
+      if custom_print_templates.include?(report)
+        # Mapfish custom report
 
-      if result.kind_of? Net::HTTPSuccess
-        send_data result.body, :type => type, :disposition => 'attachment', :filename => "#{params[:report]}.pdf"
+        # minimal Mapfish print params
+        print_params = params.reject {|p| ['id', 'controller', 'action', 'format'].include?(p) }
+        print_params['layout'] = report
+        print_params['outputFormat'] = output_format
+        print_params['attributes'] = {}
+        print_params['dpi'] = print_params['dpi'] || print_dpis.first
+
+        # add any custom params
+        set_custom_print_params(report, print_params)
+
+        # create report
+        temp, temp_id = mapfish_print(print_params)
+
+        default_filename = "#{report}.#{output_format}"
+        send_custom_report(report, print_params, temp, type, default_filename)
       else
-        logger.info "#{result.code}: #{result.body}"
-        render :nothing => true, :status => result.code
+        # JasperReport
+        create_and_send_jasper_report(report, request, type, "#{report}.pdf")
       end
     end
   end
@@ -240,6 +267,42 @@ class PrintController < ApplicationController
 
   protected
 
+  def print_scales
+    if defined? PRINT_SCALES
+      # from config
+      PRINT_SCALES
+    else
+      # default
+      [500, 1000, 2500, 5000, 10000, 15000, 25000, 50000, 100000, 200000, 500000]
+    end
+  end
+
+  def print_dpis
+    if defined? PRINT_DPIS
+      # from config
+      PRINT_DPIS
+    else
+      # default
+      [150, 300]
+    end
+  end
+
+  def print_templates
+    @print_templates ||= begin
+      # get all templates from Mapfish print config
+      mapfish_config = YAML.load(File.read(@configFile))
+      mapfish_config['templates'].keys
+    end
+  end
+
+  def custom_print_templates
+    @custom_print_templates ||= begin
+      # get custom templates from Mapfish print config
+      mapfish_config = YAML.load(File.read(@configFile))
+      mapfish_config['templates'].keep_if {|k, v| v['attributes'].has_key?('gb_custom_template') }.keys
+    end
+  end
+
   def rewrite_wms_uri(url, use_cgi)
     #http://wms.zh.ch/basis -> http://127.0.0.1/cgi-bin/mapserv.fcgi?MAP=/opt/geodata/mapserver/maps/intranet/basis.map&
     out = url
@@ -255,9 +318,126 @@ class PrintController < ApplicationController
     out
   end
 
+  # add custom print params according to report type, e.g. add map and zoom to feature in custom reports
+  # override in descendant classes
+  def set_custom_print_params(report, print_params)
+=begin example
+    case report
+    when "TopicName"
+      # add map and layer
+      layer_url = rewrite_wms_uri("#{wms_host}/TopicName", false)
+      print_params['attributes']['map'] = {
+        :dpi => print_params[:dpi],
+        :bbox => [669242, 223923, 716907, 283315],
+        :projection => 'EPSG:21781',
+        :layers => [
+          {
+            :type => 'WMS',
+            :baseURL => layer_url,
+            :layers => ['Layer1', 'Layer2'],
+            :imageFormat => 'image/png; mode=8bit',
+            :styles => [''],
+            :customParams => {
+              :TRANSPARENT => true,
+              :map_resolution => print_params['dpi']
+            }
+          }
+        ]
+      }
+    end
+=end
+  end
+
+  def mapfish_print(print_params)
+    output_format = print_params["outputFormat"]
+    unless MAPFISH_PRINT_OUTPUT_FORMATS.include?(output_format)
+      # convert to raster from pdf
+      print_params['outputFormat'] = 'pdf'
+    end
+
+    logger.info "Mapfish Print v3: #{print_params.to_yaml}"
+
+    temp_id = SecureRandom.random_number(2**31)
+    temp_mapfish = "#{TMP_PREFIX}#{temp_id.to_s}.#{print_params['outputFormat']}"
+
+    if PRINT_URL.present?
+      # call Mapfish Print servlet
+      data = {
+        :spec => print_params.to_json
+      }
+      response = call_servlet('POST', "buildreport.#{print_params['outputFormat']}", data)
+      File.open(temp_mapfish, 'wb') {|f| f.write(response.body) }
+    else
+      # call Mapfish Print standalone
+      print_standalone(print_params, temp_mapfish)
+    end
+
+    temp = temp_mapfish
+    unless MAPFISH_PRINT_OUTPUT_FORMATS.include?(output_format)
+      # convert PDF to image if not supported by Mapfish Print
+      pdf = Magick::Image.read(temp_mapfish) { self.density = print_params['dpi'] }.first
+      temp_img = "#{TMP_PREFIX}#{temp_id.to_s}.#{output_format}"
+      pdf.write(temp_img)
+      File.delete(temp_mapfish)
+      temp = temp_img
+    end
+
+    return temp, temp_id
+  end
+
+  def call_servlet(method, action, print_params=nil)
+    begin
+      url = URI.parse(URI.decode("#{PRINT_URL}/#{action}"))
+      logger.info "Forward request: #{method} #{url}"
+
+      case method
+      when 'GET'
+        # add params to URL
+        url = URI.parse("#{url}?#{print_params.to_param}") unless print_params.nil?
+        response = Net::HTTP.get_response(url)
+      when 'POST'
+        http = Net::HTTP.new(url.host, url.port)
+        req = Net::HTTP::Post.new(url.path)
+        req.set_form_data(print_params)
+        response = http.request(req)
+      else
+        raise Exception.new("Unsupported method '#{method}'")
+      end
+    rescue => err
+      raise MapfishError.new("#{method} #{url}\n#{print_params.to_json}", "#{err.class}: #{err.message}")
+    end
+
+    if response.code != '200'
+      raise MapfishError.new("#{method} #{url}\n#{print_params.to_json}", response.body)
+    end
+
+    response
+  end
+
   def baseCmd(config_file = nil)
     config = config_file || @configFile
-    "java -cp #{GbMapfishPrint::PRINT_JAR} org.mapfish.print.ShellMapPrinter --config=#{config}"
+    "java -cp '#{PRINT_STANDALONE_JARS}' org.mapfish.print.cli.Main -config #{config} -verbose 0"
+  end
+
+  def print_standalone(print_params, temp_mapfish)
+    cmd = "#{baseCmd} -output #{temp_mapfish}"
+    #result = ""
+    errors = ""
+    status = POpen4::popen4(cmd) do |stdout, stderr, stdin, pid|
+      stdin.puts print_params.to_json
+      stdin.close
+      #result = stdout.readlines.join("")
+      errors = stderr.readlines.join("")
+    end
+    if status.nil? || status.exitstatus != 0
+      raise JavaError.new(cmd + "\n" + print_params.to_json, errors)
+    end
+  end
+
+  # handler for sending custom report file, e.g. to customize filename depending on params
+  # override in descendant classes
+  def send_custom_report(report, print_params, path, type, filename)
+    send_file path, :type => type, :disposition => 'attachment', :filename => filename
   end
 
   def cleanupTempFiles
@@ -271,58 +451,100 @@ class PrintController < ApplicationController
     end
   end
 
-  def call_servlet(request)
-    url = URI.parse(URI.decode(PRINT_URL))
-    logger.info "Forward request: #{PRINT_URL}"
-    printspec = request.parameters.to_json
+  # convert Mapfish Print v2 request params to v3
+  # NOTE: v2 can be used directly (with -v2), but does not support multiple maps
+  # see also mapfish-print/core/src/main/java/org/mapfish/print/servlet/oldapi/OldAPIRequestConverter.java
+  def convert_mapfish_v2_params(print_v2_params)
+    print_params = {
+      'attributes' => {}
+    }
 
-    response = nil
-    begin
-      http = Net::HTTP.new(url.host, url.port)
-      http.start do
-        case request.method.to_s
-        when 'GET'  then response = http.get(url.path) #, request.headers
-        #when 'POST' then response = http.post(url.path, printspec)
-        when 'POST'  then response = http.get("#{url.path}?spec=#{CGI.escape(printspec)}") #-> GET print.pdf
+    # report
+    ['layout', 'outputFormat'].each do |k|
+      print_params[k] = print_v2_params[k] if print_v2_params.has_key?(k)
+    end
+
+    # map
+    map = {}
+    map['dpi'] = print_v2_params['dpi'] if print_v2_params.has_key?('dpi')
+    map['projection'] = print_v2_params['srs'] if print_v2_params.has_key?('srs')
+
+    page_map_params = ['center', 'scale', 'rotation']
+    print_v2_params['pages'].each do |page|
+      if page.has_key?('center')
+        map['center'] = page['center']
+        # add text param for center
+        print_params['attributes']['center_text'] = page['center']
+      end
+      if page.has_key?('scale')
+        map['scale'] = page['scale']
+        # add text param for scale
+        print_params['attributes']['scale_text'] = page['scale']
+      end
+      map['rotation'] = -page['rotation'] if page.has_key?('rotation')
+
+      # custom params from page
+      page.each do |k, v|
+        print_params['attributes'][k] = v unless page_map_params.include?(k)
+      end
+    end
+
+    # layers
+    map['layers'] = []
+    if print_v2_params.has_key?('layers')
+      print_v2_params['layers'].reverse.each do |v2_layer|
+        layer = {}
+
+        case v2_layer['type'].downcase
+        when "wms"
+          # WMS
+          layer['type'] = 'wms'
+          ['customParams', 'imageFormat', 'name', 'layers', 'opacity', 'mergeableParams', 'baseURL', 'styles', 'rasterStyle', 'failOnError', 'useNativeAngle', 'serverType', 'version'].each do |k|
+            layer[k] = v2_layer[k] if v2_layer.has_key?(k)
+          end
+          layer['imageFormat'] = v2_layer['format'] if v2_layer.has_key?('format')
+        when "vector"
+          # vector
+          layer['type'] = 'geojson'
+          ['style', 'name', 'opacity', 'renderAsSvg', 'failOnError', 'geoJson'].each do |k|
+            layer[k] = v2_layer[k] if v2_layer.has_key?(k)
+          end
+          if v2_layer.has_key?('styles')
+            layer['style'] = v2_layer['styles']
+            layer['style'].each do |k, v|
+              if v.has_key?('label')
+                # set default font
+                v['fontFamily'] = 'sans-serif' unless v.has_key?('fontFamily')
+                v['fontSize'] = '12px' unless v.has_key?('fontSize')
+              end
+            end
+            layer['style']['styleProperty'] = v2_layer['styleProperty'] if v2_layer.has_key?('styleProperty')
+            layer['style']['version'] = 1
+          end
         else
-          raise Exception.new("unsupported method `#{request.method}'.")
+          logger.info "Layer type not supported: #{v2_layer.to_yaml}"
+          next
         end
-      end
-    rescue => err
-      logger.info("#{err.class}: #{err.message}")
-      render :nothing => true, :status => 500
-      return
-    end
-    #send_data response.body, :status => response.code, :type=>'application/x-pdf', :disposition=>'attachment', :filename=>'map.pdf'
-    tempId = SecureRandom.random_number(2**31)
-    temp = TMP_PREFIX + tempId.to_s + TMP_SUFFIX
-    File.open(temp, 'wb') {|f| f.write(response.body) }
-    convert_and_send_link(temp, tempId, request.parameters["dpi"], request.parameters["outputFormat"])
-  end
 
-  # optionally convert PDF to image and send link to print result
-  def convert_and_send_link(temp_pdf, temp_id, dpi, output_format)
-    temp_suffix = ".pdf"
-
-    if output_format != "pdf" && OUTPUT_FORMATS.include?(output_format)
-        # convert PDF to image
-        pdf = Magick::Image.read(temp_pdf) { self.density = dpi }.first
-        temp_suffix = ".#{output_format}"
-        temp_img = TMP_PREFIX + temp_id.to_s + temp_suffix
-        pdf.write(temp_img)
-        File.delete(temp_pdf)
-    end
-
-    respond_to do |format|
-      format.json do
-        render :json=>{ 'getURL' => url_for(:action=>'show', :id=>temp_id) + temp_suffix }
+        map['layers'] << layer
       end
     end
+
+    print_params['attributes']['map'] = map
+
+    # custom params
+    non_custom_params = ['layout', 'outputFormat', 'units', 'srs', 'dpi', 'layers', 'pages']
+    print_v2_params.each do |k, v|
+      unless non_custom_params.include?(k)
+        print_params['attributes'][k] = v
+      end
+    end
+
+    print_params
   end
 
   # forward to JasperReport
-  def create_report(request)
-      report = request.parameters["report"]
+  def create_report(report, request)
       call_params = {
         :j_username => JASPER_USER,
         :j_password => JASPER_PASSWORD
@@ -356,23 +578,33 @@ class PrintController < ApplicationController
   end
 
   #Mapfish print compatible report delivery
-  def call_report(request)
-      result = create_report(request)
+  def call_report(report, request)
+      result = create_report(report, request)
       if result.nil?
         render :nothing => true, :status => 500
-        return
-      end
-
-      if result.kind_of? Net::HTTPSuccess
+      elsif result.kind_of? Net::HTTPSuccess
         temp_id = SecureRandom.random_number(2**31)
         temp = TMP_PREFIX + temp_id.to_s + TMP_SUFFIX
         File.open(temp, 'wb') {|f| f.write(result.body) }
 
+        # send link to print result
         render :json=>{ 'getURL' => url_for(:action=> 'show', :id=> temp_id) + ".pdf" }
       else
         logger.info "#{result.code}: #{result.body}"
         render :nothing => true, :status => result.code
       end
+  end
+
+  def create_and_send_jasper_report(report, request, type, filename)
+    result = create_report(report, request)
+    if result.nil?
+      render :nothing => true, :status => 500
+    elsif result.kind_of? Net::HTTPSuccess
+      send_data result.body, :type => type, :disposition => 'attachment', :filename => filename
+    else
+      logger.info "#{result.code}: #{result.body}"
+      render :nothing => true, :status => result.code
+    end
   end
 
 end

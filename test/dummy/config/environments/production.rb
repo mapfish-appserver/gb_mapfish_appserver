@@ -74,4 +74,4 @@ MAPSERV_CGI_URL = '/cgi-bin/mapserv'
 MAPPATH = '/home/pi/code/rails/dummy/mapconfig'
 
 #Internal URL of print servlet (nil: print-standalone)
-PRINT_URL = nil #'http://localhost:8080/print-servlet-1.1/pdf/print.pdf'
+PRINT_URL = nil #'http://localhost:8080/mapfish_print/print/myapp'

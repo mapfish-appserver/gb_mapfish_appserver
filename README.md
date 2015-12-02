@@ -31,12 +31,15 @@ Documentation
 
 For more documentation see the [mapfish-appserver.github.io](http://mapfish-appserver.github.io/)
 
+Note: Mapfish Appserver v1.1.0 or later no longer uses the gb_mapfish_print gem, but uses a
+separately installed Mapfish Print v3 for printing (see documentation)
+
 Authors and License
 -------------------
 
-Primary authors are Pirmin Kalberer and Matthias Walker, Sourcepole,
+Primary authors are Pirmin Kalberer and Mathias Walker, Sourcepole,
 Stefan Zinggeler and Adrian Herzog, Canton of Zurich.
 
 New BSD License
 
-*Copyright (c) 2009-2013 Sourcepole AG & Canton of Zurich*
+*Copyright (c) 2009-2015 Sourcepole AG & Canton of Zurich*

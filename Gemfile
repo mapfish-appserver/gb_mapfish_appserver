@@ -14,5 +14,4 @@ gemspec
 # gem 'ruby-debug'
 
 gem 'therubyracer', :platforms => :ruby
-gem 'gb_mapfish_print'
 gem 'ruby_mapscript', :platforms => :ruby

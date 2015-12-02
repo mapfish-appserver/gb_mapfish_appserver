@@ -22,6 +22,10 @@ LOCAL_WMS = [
 #NOTE: use a shared directory for multi-node setups (e.g. NFS)
 PRINT_TMP_PATH = "/tmp"
 
+# scales and dpis for printing (optional)
+#PRINT_SCALES = [500, 1000, 2500, 5000, 10000, 15000, 25000, 50000, 100000, 200000, 500000]
+#PRINT_DPIS = [150, 300]
+
 DEFAULT_TOPIC = {
   SITE_DEFAULT => (Topic.first rescue nil) #Topic.where(:name => 'MainMap').first
 }

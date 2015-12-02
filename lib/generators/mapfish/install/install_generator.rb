@@ -80,15 +80,17 @@ MAPSERV_CGI_URL = '/cgi-bin/mapserv'
 MAPPATH = '#{Rails.root}/mapconfig'
 
 #Internal URL of print servlet (nil: print-standalone)
-PRINT_URL = nil #'http://localhost:8080/print-servlet-1.1/pdf/print.pdf'
+PRINT_URL = nil #'http://localhost:8080/mapfish_print/print/myapp'
+#path to standalone Mapfish Print JARs (if PRINT_URL = nil)
+# PRINT_STANDALONE_JARS = '$PATH_TO/mapfish-print/core/lib/*'
 }
         %w[development test production].each do |env|
           append_to_file("config/environments/#{env}.rb", env_config)
         end
       end
 
-      def add_print_config_template
-        template "print.yml", "config/print.yml"
+      def copy_print_configs
+        directory "print", "print"
       end
 
       def setup_mapconfig
