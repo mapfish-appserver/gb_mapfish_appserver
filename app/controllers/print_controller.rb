@@ -62,8 +62,8 @@ class PrintController < ApplicationController
     # parse layouts
     info['layouts'] = []
     mapfish_config['templates'].each do |name, template|
-      # skip non-standard templates
-      next unless template['attributes'].has_key?('gb_standard_template')
+      # skip custom templates
+      next if template['attributes'].has_key?('gb_custom_template')
 
       map = template['attributes']['map']
       # skip if no map
