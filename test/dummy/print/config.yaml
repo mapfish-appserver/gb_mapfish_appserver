@@ -1,0 +1,24 @@
+# Mapfish Print v3
+throwErrorOnExtraParameters: true
+
+templates:
+
+  #===========================================================================
+  A4 portrait: !template
+  #===========================================================================
+    reportTemplate: A4_portrait.jrxml
+    attributes:
+      map_title: !string {default: "Map Title"}
+      map: !map
+        width: 555
+        height: 680
+        maxDpi: 300
+        dpiSuggestions: [150, 300]
+      scalebar: !scalebar
+        width: 120
+        height: 20
+    processors:
+    - !reportBuilder
+        directory: "."
+    - !createMap {}
+    - !createScalebar {}
