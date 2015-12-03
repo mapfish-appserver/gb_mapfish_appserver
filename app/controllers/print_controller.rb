@@ -1,7 +1,6 @@
 #Mapfish print controller with access control and servlet call
 
 class PrintController < ApplicationController
-  require 'popen4'
   begin
     require 'RMagick'
   rescue LoadError
@@ -436,6 +435,8 @@ class PrintController < ApplicationController
   end
 
   def print_standalone(print_params, temp_mapfish)
+    require 'popen4'
+
     cmd = "#{baseCmd} -output #{temp_mapfish}"
     #result = ""
     errors = ""

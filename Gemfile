@@ -15,3 +15,6 @@ gemspec
 
 gem 'therubyracer', :platforms => :ruby
 gem 'ruby_mapscript', :platforms => :ruby
+
+# for Mapfish Print standalone
+# gem 'popen4'
