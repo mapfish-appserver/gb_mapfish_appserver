@@ -476,8 +476,8 @@ class PrintController < ApplicationController
       'attributes' => {}
     }
 
-    # report
-    ['layout', 'outputFormat'].each do |k|
+    # report (NOTE: keep dpi for possible image conversion)
+    ['layout', 'outputFormat', 'dpi'].each do |k|
       print_params[k] = print_v2_params[k] if print_v2_params.has_key?(k)
     end
 
