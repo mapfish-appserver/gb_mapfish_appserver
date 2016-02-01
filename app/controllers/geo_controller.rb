@@ -81,24 +81,18 @@ class GeoController < ApplicationController
 
   private
 
-  # http://blog.plataformatec.com.br/2009/09/exporting-data-to-csv-and-excel-in-your-rails-app/
-  BOM = "\377\376" #Byte Order Mark
-
   def send_csv_excel(features)
     require 'csv'
-    require 'iconv'
-    export = StringIO.new
-    if features.size > 0
-      CSV::Writer.generate(export, "\t") do |csv|
-        csv << features.first.csv_header
-        features.each do |obj|
-          csv << obj.csv_row
-        end
+
+    # add byte order mark and use CRLF row breaks for Excel
+    bom = "\xEF\xBB\xBF"
+    csv_data = CSV.generate(bom, {:write_headers => true, :col_sep => ";", :row_sep => "\r\n"}) do |csv|
+      csv << features.first.csv_header unless features.empty?
+      features.each do |adresse|
+        csv << adresse.csv_row
       end
-      export.rewind
     end
-    csv_data = export.read
-    csv_data = BOM + Iconv.conv("utf-16le", "utf-8", csv_data)
+
     send_data(csv_data, :filename => "features_#{geo_model.table_name}.csv", :type => 'text/csv; header=present')
   end
 
