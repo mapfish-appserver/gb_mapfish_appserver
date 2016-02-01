@@ -179,12 +179,12 @@ class Topic < ActiveRecord::Base
     perms.collect(&:role)
   end
 
-  def query(ability, query_topic, searchbbox, nearest=nil)
+  def query(ability, query_topic, searchbbox, nearest=nil, user=nil)
     active_layers = query_topic['layers'].split(',')
     qlayers = query_layers(ability, active_layers)
     results = []
     qlayers.each do |layer|
-      result = layer.query(ability, query_topic, searchbbox, nearest)
+      result = layer.query(ability, query_topic, searchbbox, nearest, user)
       results << result unless result.nil?
     end
     results

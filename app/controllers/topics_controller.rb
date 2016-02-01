@@ -42,15 +42,15 @@ class TopicsController < ApplicationController
       authorize! :show, topic
       query_topic['topicobj'] = topic
       if params['bbox']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'], nearest)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'], nearest, current_user)
       elsif params['rect']
         x1, y1, x2, y2 = params['rect'].split(',').collect(&:to_f)
         rect = "POLYGON((#{x1} #{y1}, #{x1} #{y2}, #{x2} #{y2}, #{x2} #{y1} ,#{x1} #{y1}))"
-        query_topic['results'] = topic.query(current_ability, query_topic, rect, nearest)
+        query_topic['results'] = topic.query(current_ability, query_topic, rect, nearest, current_user)
       elsif params['circle']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'], nearest)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'], nearest, current_user)
       elsif params['poly']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'], nearest)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'], nearest, current_user)
       else
         # problem
       end

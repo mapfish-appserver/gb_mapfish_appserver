@@ -128,7 +128,7 @@ EOS
     allowed_fields
   end
 
-  def query(ability, query_topic, searchgeo, nearest=nil)
+  def query(ability, query_topic, searchgeo, nearest=nil, user=nil)
     # use layer setting by default
     nearest = search_nearest if nearest.nil?
 
@@ -154,7 +154,7 @@ EOS
           feature_class.send(custom_query_method, self, query_topic, searchgeo)
         elsif feature_class.respond_to?(:identify_query)
           logger.debug "*** Custom identify_query on layer #{name}"
-          feature_class.identify_query(searchgeo, searchdistance)
+          feature_class.identify_query(self, query_topic, searchgeo, ability, user)
         else
           logger.debug "*** Identify on layer #{name} with query fields #{query_fields(ability)} at #{searchgeo.inspect}"
           feature_class.identify_filter(searchgeo, searchdistance, nearest).where(where_filter).select(query_fields(ability)).all
