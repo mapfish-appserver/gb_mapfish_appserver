@@ -113,9 +113,9 @@ EOS
     #logger.info "************************* Attribute for name '#{name}': #{@attrs[name].inspect}"
   end
 
-  def query_fields(ability)
+  def query_fields(ability, client_srid)
     return '' if feature_class.nil?
-    ([pkey]+ident_fields_for(ability)+[feature_class.extent_field, feature_class.area_field]).join(',')
+    ([pkey]+ident_fields_for(ability)+[feature_class.extent_field(client_srid), feature_class.area_field(client_srid)]).join(',')
   end
 
   def ident_fields_for(ability)
@@ -128,7 +128,7 @@ EOS
     allowed_fields
   end
 
-  def query(ability, query_topic, searchgeo, nearest=nil, user=nil)
+  def query(ability, query_topic, searchgeo, nearest=nil, user=nil, client_srid=nil)
     # use layer setting by default
     nearest = search_nearest if nearest.nil?
 
@@ -151,16 +151,16 @@ EOS
         logger.debug "******** query_topic: #{query_topic} ***************************************************"
         features = if custom_query_method
           logger.debug "*** Custom query on layer #{name}: #{query_topic.inspect}"
-          feature_class.send(custom_query_method, self, query_topic, searchgeo)
+          feature_class.send(custom_query_method, self, query_topic, searchgeo, client_srid)
         elsif feature_class.respond_to?(:identify_query)
           logger.debug "*** Custom identify_query on layer #{name}"
-          feature_class.identify_query(self, query_topic, searchgeo, ability, user)
+          feature_class.identify_query(self, query_topic, searchgeo, ability, user, client_srid)
         else
-          logger.debug "*** Identify on layer #{name} with query fields #{query_fields(ability)} at #{searchgeo.inspect}"
-          feature_class.identify_filter(searchgeo, searchdistance, nearest).where(where_filter).select(query_fields(ability)).all
+          logger.debug "*** Identify on layer #{name} with query fields #{query_fields(ability, client_srid)} at #{searchgeo.inspect}"
+          feature_class.identify_filter(searchgeo, searchdistance, nearest, client_srid).where(where_filter).select(query_fields(ability, client_srid)).all
         end
         logger.debug "Number of features: #{features.size}"
-        # calculate bbox of all features
+        # calculate bbox of all features (in client_srid)
         unless features.empty?
           envelope = GeoRuby::SimpleFeatures::Geometry.from_hex_ewkb(features.first['extent']).envelope
           features.each do |feature|
@@ -170,7 +170,7 @@ EOS
           bbox = [envelope.lower_corner.x, envelope.lower_corner.y, envelope.upper_corner.x, envelope.upper_corner.y]
         end
       rescue Exception => e
-        features = "Table: <b>#{table}</b><br/>Exception: #{e}<br/>query fields: #{query_fields(ability)}<br/>db fields: #{feature_class.column_names.join(',')}<br/>missing: <font color='red'>#{(query_fields(ability).split(',') - feature_class.column_names).join(', ')}</font><br/><br/>"
+        features = "Table: <b>#{table}</b><br/>Exception: #{e}<br/>query fields: #{query_fields(ability, client_srid)}<br/>db fields: #{feature_class.column_names.join(',')}<br/>missing: <font color='red'>#{(query_fields(ability, client_srid).split(',') - feature_class.column_names).join(', ')}</font><br/><br/>"
         logger.info "Identify error on layer #{name} #{features}"
       end
       [self, features, bbox]

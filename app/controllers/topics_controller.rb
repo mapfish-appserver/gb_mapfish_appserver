@@ -31,6 +31,8 @@ class TopicsController < ApplicationController
   end
 
   def query
+    client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+
     # optional parameter to return only the feature nearest to the center of the search geometry, if no custom layer query is used
     # use layer setting by default
     nearest = params['nearest'].nil? ? nil : params['nearest'] == 'true'
@@ -42,15 +44,15 @@ class TopicsController < ApplicationController
       authorize! :show, topic
       query_topic['topicobj'] = topic
       if params['bbox']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'], nearest, current_user)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['bbox'], nearest, current_user, client_srid)
       elsif params['rect']
         x1, y1, x2, y2 = params['rect'].split(',').collect(&:to_f)
         rect = "POLYGON((#{x1} #{y1}, #{x1} #{y2}, #{x2} #{y2}, #{x2} #{y1} ,#{x1} #{y1}))"
-        query_topic['results'] = topic.query(current_ability, query_topic, rect, nearest, current_user)
+        query_topic['results'] = topic.query(current_ability, query_topic, rect, nearest, current_user, client_srid)
       elsif params['circle']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'], nearest, current_user)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['circle'], nearest, current_user, client_srid)
       elsif params['poly']
-        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'], nearest, current_user)
+        query_topic['results'] = topic.query(current_ability, query_topic, params['poly'], nearest, current_user, client_srid)
       else
         # problem
       end

@@ -30,6 +30,11 @@ DEFAULT_TOPIC = {
   SITE_DEFAULT => (Topic.first rescue nil) #Topic.where(:name => 'MainMap').first
 }
 
+# set default spatial reference system of database for geo factory
+GeoModel.set_default_rgeo_factory(RGeo::Cartesian.factory(:srid => 21781, :proj4 => '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=600000 +y_0=200000 +ellps=bessel +towgs84=674.4,15.1,405.3,0,0,0,0 +units=m +no_defs'))
+# set default spatial reference system for client requests
+GeoModel.set_default_client_srid(21781)
+
 DEFAULT_SCALE = 310000
 DEFAULT_X = 692000
 DEFAULT_Y = 252000

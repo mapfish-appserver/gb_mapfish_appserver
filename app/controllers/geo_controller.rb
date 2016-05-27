@@ -7,12 +7,14 @@ class GeoController < ApplicationController
   end
 
   def index
+    client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+
     @features = geo_model.bbox_filter(params)
     @features = @features.user_filter(current_ability)
     respond_to do |format|
       # NOTE: return GeoJSON by default (OpenLayers.Protocol.HTTP PUT does not work with '.json' format selection)
       format.html {
-        render :json => @features.json_filter.to_geojson
+        render :json => @features.json_filter.select_geojson_geom(client_srid).to_geojson
       }
       format.csv {
         send_csv_excel(@features.csv_filter)
@@ -21,7 +23,9 @@ class GeoController < ApplicationController
   end
 
   def show
-    @feature = geo_model.user_filter(current_ability).json_filter.find(params[:id])
+    client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+
+    @feature = geo_model.user_filter(current_ability).json_filter.select_geojson_geom(client_srid).find(params[:id])
     render :json => [@feature].to_geojson
   end
 

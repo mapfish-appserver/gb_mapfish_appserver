@@ -21,9 +21,30 @@ module GbMapfishAppserver
   module Array
 
     def to_geojson(options = {})
+      # get CRS from first feature
+      if any? && first.respond_to?('geojson_srid')
+        crs = first.geojson_srid
+        # skip GeoJSON CRS in features
+        options.merge!({:skip_feature_crs => true})
+      end
+
       geojson = '{"type": "FeatureCollection", "features": ['
       geojson << collect {|e| e.to_geojson(options) }.join(',')
-      geojson << ']}'
+      geojson << ']'
+
+      unless crs.blank?
+        # add top level GeoJSON CRS
+        geojson << ', "crs": '
+        geojson << {
+          :type => 'name',
+          :properties => {
+            :name => crs
+          }
+        }.to_json
+      end
+
+      geojson << '}'
+
       geojson
     end
 
