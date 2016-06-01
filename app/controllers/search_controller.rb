@@ -34,7 +34,8 @@ class SearchController < ApplicationController
     if rule.nil?
       render :json => {:success => false, :msg => "ERROR: #{params[:rule]} model missing"}
     else
-      location = rule.locate(params['locations'])
+      client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+      location = rule.locate(params['locations'], client_srid)
       unless location.nil?
         location[:success] = true
         render :json => location

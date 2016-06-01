@@ -17,6 +17,8 @@ class AppsController < ApplicationController
     @x = params['x'].nil? ? DEFAULT_X : params['x'].to_f
     @y = params['y'].nil? ? DEFAULT_Y : params['y'].to_f
 
+    @client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+
     @zoom = params['zoom'].nil? ? DEFAULT_ZOOM : params['zoom'].to_i # for mobile
     @gbapp = params['gbapp'].nil? ? 'default' : params['gbapp'] # for mobile
 
@@ -40,7 +42,7 @@ class AppsController < ApplicationController
       if rule.nil?
         logger.info "Locate rule not found: {params['locate']}"
       else
-        location = rule.locate(params['locations'])
+        location = rule.locate(params['locations'], @client_srid)
         unless location.nil?
           @seltopic = location[:selection][:topic] || @topic_name
           @sellayer = location[:selection][:layer]

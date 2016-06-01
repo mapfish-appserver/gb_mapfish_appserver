@@ -10,7 +10,7 @@ class SearchModel < GeoModel
     raise NotImplementedError.new
   end
 
-  def self.locate(locations)
+  def self.locate(locations, client_srid=nil)
     #return {:features => []}
     raise NotImplementedError.new
   end
@@ -28,9 +28,9 @@ class SearchModel < GeoModel
   end
 
   #Generic location search with one search field
-  def self.layer_locate(layer, search_field, locations)
+  def self.layer_locate(layer, search_field, locations, client_srid=nil)
     feature_class = layer.feature_class
-    feature_class.where(search_field => locations).select(feature_class.primary_key).select(feature_class.extent_field).limit(LOCATE_MAX_COUNT).all
+    feature_class.where(search_field => locations).select(feature_class.primary_key).select(feature_class.extent_field(client_srid)).limit(LOCATE_MAX_COUNT).all
   end
 
   # "261,AU4998$261,AU4999" -> [["261","AU4998"],["261","AU4999"]]

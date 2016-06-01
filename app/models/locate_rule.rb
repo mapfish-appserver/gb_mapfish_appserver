@@ -8,7 +8,7 @@ class LocateRule
   end
 
   # get selection and extent for located features
-  def locate(locations)
+  def locate(locations, client_srid=nil)
     features = if layer.nil?
       # user defined model
       seltopic = model.selection_topic
@@ -16,7 +16,7 @@ class LocateRule
       selproperty = model.primary_key
       selscalerange = model.selection_scalerange
       search_locs = model.search_locations(locations)
-      model.locate(search_locs)
+      model.locate(search_locs, client_srid)
     else
       # generic SearchModel
       layer_obj = Layer.find_by_name(layer)
@@ -25,7 +25,7 @@ class LocateRule
       selproperty = layer_obj.feature_class.primary_key
       selscalerange = model.selection_scalerange
       search_locs = locations.split(',')
-      model.layer_locate(layer_obj, search_field, search_locs)
+      model.layer_locate(layer_obj, search_field, search_locs, client_srid)
     end
     if features.present?
       x, y, scale = model.map_center(features)
