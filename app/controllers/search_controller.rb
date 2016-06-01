@@ -1,14 +1,18 @@
 class SearchController < ApplicationController
 
   def index
-    @rule =  SEARCHRULES[params[:rule]]
+    @rule = SEARCHRULES[params[:rule]]
     if @rule.nil? then
       respond_to do |format|
         format.html # index.html.erb
         format.json { render :json => {:success => false,  :quality => -9999, :msg => "ERROR: #{params[:rule]} model missing"} }
       end
     else
-      result = @rule.model.query(@rule.fields, params)
+      # transform geometry fields to client SRID
+      client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+      fields = transformed_geom_fields(@rule.fields, @rule.model.srid, client_srid)
+
+      result = @rule.model.query(fields, params)
       @features = result[:features]
       @quality = result[:quality]
       @success = @quality >= 0 
@@ -75,6 +79,13 @@ class SearchController < ApplicationController
   end
 
   private
+
+  # replace "*geom*" in fields with SQL for transformed geometry
+  def transformed_geom_fields(fields, geom_srid, target_srid)
+    fields.collect do |field|
+      field.gsub(/\*(\w+)\*/) { |m| GeoModel.transform_geom_sql($1, geom_srid, target_srid) }
+    end
+  end
 
   def features_for_json_reader(features)
     # convert feature list for display in grid panel:
