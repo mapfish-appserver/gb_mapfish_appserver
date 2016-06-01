@@ -32,6 +32,7 @@ class TopicsController < ApplicationController
 
   def query
     client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+    @client_srid = client_srid
 
     # optional parameter to return only the feature nearest to the center of the search geometry, if no custom layer query is used
     # use layer setting by default
