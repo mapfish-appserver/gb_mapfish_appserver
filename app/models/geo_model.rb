@@ -35,11 +35,11 @@ class GeoModel < ActiveRecord::Base
     if geom_srid.nil? || target_srid.nil? || geom_srid == target_srid
       # no transformation
     else
-      # transform from target SRID
+      # transform to target SRID
       if target_srid == 2056 && geom_srid == 21781
-        geom_sql = "ST_GeomFromEWKB(ST_Fineltra(#{geom_sql}, 'chenyx06_triangles', 'the_geom_lv03', 'the_geom_lv95'))"
+        geom_sql = "ST_GeomFromEWKB(ST_Fineltra(#{geom_sql}, 'chenyx06_triangles', 'geom_lv03', 'geom_lv95'))"
       elsif target_srid == 21781 && geom_srid == 2056
-        geom_sql = "ST_GeomFromEWKB(ST_Fineltra(#{geom_sql}, 'chenyx06_triangles', 'the_geom_lv95', 'the_geom_lv03'))"
+        geom_sql = "ST_GeomFromEWKB(ST_Fineltra(#{geom_sql}, 'chenyx06_triangles', 'geom_lv95', 'geom_lv03'))"
       else
         geom_sql = "ST_Transform(#{geom_sql}, #{target_srid})"
       end
