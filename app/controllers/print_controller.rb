@@ -573,6 +573,7 @@ class PrintController < ApplicationController
         end
         call_params[:MAP_BBOX] = page["extent"].join(',')
         call_params[:MAP_CENTER] = page["center"].join(',')
+        call_params[:MAP_SRS] = request.parameters["srs"]
       end
       request.parameters.each do |name, val|
         if name =~ /^REP_/
