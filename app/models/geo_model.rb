@@ -158,7 +158,7 @@ class GeoModel < ActiveRecord::Base
 
     if filter_geom
       # transform filter geom to srid
-      client_srid = params[:srid].blank? ? default_client_srid : params[:srid].to_i
+      client_srid = params['srid'].blank? ? default_client_srid : params['srid'].to_i
       filter_geom = transform_geom_sql("ST_SetSRID(#{filter_geom}, #{client_srid})", client_srid, srid)
       filter = filter.where("ST_Intersects(#{geometry_field}, #{filter_geom})")
     end
