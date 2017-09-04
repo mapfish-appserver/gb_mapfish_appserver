@@ -14,13 +14,13 @@ class User < ActiveRecord::Base
   has_and_belongs_to_many :roles
 
   has_many :groups_users, :dependent => :destroy
-  has_many :groups, :through => :groups_users, :conditions => {'groups_users.granted' => true}
+  has_many :groups, :through => :groups_users, :conditions => ["groups_users.granted = true"]
 
   accepts_nested_attributes_for :groups_users
 
   serialize :app_infos, JSON
 
-  attr_accessible :login, :name, :email, :password, :password_confirmation, :remember_me, :requested_group, :groups_users_attributes, :app_infos
+  attr_accessible :login, :name, :email, :password, :password_confirmation, :remember_me, :requested_group, :group_ids, :groups_users_attributes, :app_infos
 
   before_create :add_requested_group
 

@@ -1,7 +1,7 @@
 class Group < ActiveRecord::Base
   has_and_belongs_to_many :roles
   has_many :groups_users
-  has_many :users, :through => :groups_users, :conditions => {'groups_users.granted' => true}
+  has_many :users, :through => :groups_users, :conditions => ["groups_users.granted = true"]
 
   attr_protected []
 

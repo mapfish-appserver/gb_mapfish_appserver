@@ -1,3 +1,6 @@
+require 'georuby'
+require 'geo_ruby/ewk'
+
 class GeoModel < ActiveRecord::Base
   establish_connection(GEODB)
 
