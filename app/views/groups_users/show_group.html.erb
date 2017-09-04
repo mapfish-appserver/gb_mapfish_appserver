@@ -54,7 +54,7 @@
               <% unless groups_user.user.app_infos.nil? %>
                 <dl class="dl-horizontal">
                   <% groups_user.user.app_infos.sort.each do |key, value| %>
-                    <dt><%= key %></dt>
+                    <dt title="<%= key %>"><%= key %></dt>
                     <dd><%= value %></dd>
                   <% end %>
                 </dl>
