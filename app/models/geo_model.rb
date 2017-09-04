@@ -112,6 +112,10 @@ class GeoModel < ActiveRecord::Base
         end
       end
       # else no features in filter
+    else
+      # order by distance to center
+      center = transform_geom_sql(center, client_srid, srid)
+      filter = filter.order("ST_Distance(#{geometry_field}, #{center})")
     end
 
     filter
