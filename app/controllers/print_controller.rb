@@ -392,6 +392,7 @@ class PrintController < ApplicationController
       # convert PDF to image if not supported by Mapfish Print
       pdf = Magick::Image.read(temp_mapfish) { self.density = print_params['dpi'] }.first
       temp_img = "#{TMP_PREFIX}#{temp_id.to_s}.#{output_format}"
+      pdf.alpha(Magick::RemoveAlphaChannel)
       pdf.write(temp_img)
       File.delete(temp_mapfish)
       temp = temp_img
