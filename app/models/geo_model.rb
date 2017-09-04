@@ -321,6 +321,151 @@ class GeoModel < ActiveRecord::Base
     []
   end
 
+  # GeoJSON validations
+
+  def self.validate_feature_collection(feature_collection, geojson_data)
+    if feature_collection.nil?
+      # not a GeoJSON
+      return {
+        :error => "Invalid GeoJSON"
+      }
+    elsif !feature_collection.is_a? RGeo::GeoJSON::FeatureCollection
+      # not a GeoJSON FeatureCollection
+      return {
+        :error => "GeoJSON is not a FeatureCollection"
+      }
+    elsif !feature_collection.any? || feature_collection.select {|feature| feature.geometry.is_empty?}.any?
+      # no features or invalid geometries
+      # NOTE: RGeo::GeoJSON.decode or feature geometry is empty if geometry is invalid
+      errors = []
+      begin
+        geojson = JSON.parse(geojson_data)
+        if geojson['features'].blank?
+          return {
+            :error => "No GeoJSON features found"
+          }
+        end
+
+        geojson['features'].each do |feature|
+          feature_errors = validate_geometry(feature)
+          errors += feature_errors if feature_errors.any?
+        end
+      rescue => err
+        logger.error "Error while checking GeoJSON geometries:\n#{err.message}"
+      end
+
+      return {
+        :error => "Invalid geometry",
+        :geometry_errors => errors
+      }
+    end
+
+    # validate geometry type
+    errors = []
+    feature_collection.each do |feature|
+      error = validate_geometry_type(feature)
+      errors << error unless error.nil?
+    end
+    if errors.any?
+      return {
+        :error => "Invalid geometry type",
+        :geometry_errors => errors
+      }
+    end
+
+    # validations OK
+    return nil
+  end
+
+  def self.validate_feature(feature, geojson_data)
+    if feature.nil? || (feature.is_a?(RGeo::GeoJSON::Feature) && feature.geometry.is_empty?)
+      geojson = JSON.parse(geojson_data)
+      if geojson['type'].blank? || geojson['type'] != 'Feature'
+        # not a GeoJSON
+        return {
+          :error => "Invalid GeoJSON"
+        }
+      else
+        # invalid geometry
+        # NOTE: RGeo::GeoJSON.decode is nil or feature geometry is empty if geometry is invalid
+        errors = []
+        begin
+          errors = validate_geometry(geojson)
+        rescue => err
+          logger.error "Error while checking GeoJSON geometries:\n#{err.message}"
+        end
+
+        return {
+          :error => "Invalid geometry",
+          :geometry_errors => errors
+        }
+      end
+    elsif !feature.is_a? RGeo::GeoJSON::Feature
+      # not a GeoJSON Feature
+      return {
+        :error => "GeoJSON is not a Feature"
+      }
+    end
+
+    # validate geometry type
+    error = validate_geometry_type(feature)
+    unless error.nil?
+      return {
+        :error => "Invalid geometry type",
+        :geometry_errors => [error]
+      }
+    end
+
+    # validations OK
+    return nil
+  end
+
+  def self.validate_geometry(feature)
+    errors = []
+
+    # validate geometry
+    wkt_geom = ""
+    sql = "WITH feature AS (SELECT ST_GeomFromGeoJSON(?) AS geom) SELECT valid, reason, ST_AsText(location) AS location, ST_AsText(geom) AS wkt_geom FROM feature, ST_IsValidDetail(geom)"
+    sql = send :sanitize_sql, [sql, feature['geometry'].to_json]
+    results = connection.execute(sql)
+    results.each do |result|
+      if result['valid'] == 'f'
+        error = {}
+        error[:id] = feature['id'] unless feature['id'].blank?
+        error[:reason] = result['reason'] unless result['reason'].blank?
+        error[:location] = result['location'] unless result['location'].blank?
+        errors << error
+      end
+      wkt_geom = result['wkt_geom']
+    end
+
+    # check for repeated vertices
+    wkt_geom.gsub(/(?<=\()([\d\.,\s]+)(?=\))/) do |m|
+      vertices = m.split(',')
+      vertices.each_with_index do |v, i|
+        if i > 0 && vertices[i-1] == v
+          errors << {
+            :reason => "Duplicated point",
+            :location => "POINT(#{v})"
+          }
+        end
+      end
+    end
+
+    errors
+  end
+
+  def self.validate_geometry_type(feature)
+    if geometry_type != 'GEOMETRY' && feature.geometry.geometry_type.to_s.upcase != geometry_type
+      error = {}
+      error[:id] = feature.feature_id unless feature.feature_id.blank?
+      error.merge({
+        :reason => "Invalid geometry type: #{feature.geometry.geometry_type}",
+        :location => feature.geometry.as_text
+      })
+    end
+  end
+
   # default client_srid
 
   @@default_client_srid = 21781
