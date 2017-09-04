@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
   end
 
   def current_roles
-    @current_roles ||= Ability::Roles.new(current_user, host_zone(request.host))
+    @current_roles_ ||= Ability::Roles.new(current_user, host_zone(request.host))
   end
 
   # Overide CanCan method
