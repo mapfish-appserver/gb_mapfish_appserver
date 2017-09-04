@@ -42,6 +42,7 @@ MAPSERV_SERVER = 'http://localhost' #nil for current application server
 MAPSERV_URL = '/cgi-bin/mapserv.fcgi'
 MAPSERV_CGI_URL = '/cgi-bin/mapserv'
 MAPPATH = '/home/pi/code/rails/dummy/mapconfig'
+MAPSERV_REDIRECT = true  # Redirect public WMS to MAPSERV_SERVER URL
 
 #Internal URL of print servlet (nil: print-standalone)
 PRINT_URL = nil #'http://localhost:8080/mapfish_print/print/myapp'

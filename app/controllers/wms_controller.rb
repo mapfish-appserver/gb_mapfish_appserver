@@ -12,10 +12,10 @@ class WmsController < ApplicationController
     add_filter(topic_name)
 
     #Send redirect for public services
-    if request.get? && public?(topic_name, host_zone(request.host))
+    if MAPSERV_REDIRECT && request.get? && public?(topic_name, host_zone(request.host))
       url, path = mapserv_request_url(request)
       #expires_in 2.minutes, :public => true #FIXME: cache_path "wms-public-#{topic_name}-#{host_zone(request.host)}"
-      redirect_to "#{url.scheme}://#{url.host}#{path}"
+      redirect_to "#{url.scheme}://#{url.host}:#{url.port}#{path}"
       return
     end
 
