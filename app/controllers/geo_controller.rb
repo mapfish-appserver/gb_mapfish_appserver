@@ -47,6 +47,10 @@ class GeoController < ApplicationController
 
       logger.info "#{geo_model.table_name}.update_attributes_from_feature: #{feature.inspect}"
       if new_feature.update_attributes_from_geojson_feature(feature, current_user)
+        # transform geometry to SRID from GeoJSON feature
+        client_srid = feature.geometry.nil? ? geo_model.default_client_srid : feature.geometry.srid
+        new_feature = geo_model.json_filter.select_geojson_geom(client_srid).find(new_feature.id)
+
         @features << new_feature
       else
         head :unprocessable_entity
@@ -71,6 +75,10 @@ class GeoController < ApplicationController
     end
 
     if @feature.update_attributes_from_geojson_feature(feature, current_user)
+      # transform geometry to SRID from GeoJSON feature
+      client_srid = feature.geometry.nil? ? geo_model.default_client_srid : feature.geometry.srid
+      @feature = geo_model.json_filter.select_geojson_geom(client_srid).find(@feature.id)
+
       render :json => @feature.to_geojson, :status => :created
     else
       head :unprocessable_entity
