@@ -89,14 +89,15 @@ class WmsController < ApplicationController
 
   def call_wms(request)
     url, path = mapserv_request_url(request)
-    logger.info "Forward request: #{url.scheme}://#{url.host}#{path}"
+    uri = URI.parse("#{url.scheme}://#{url.host}:#{url.port}#{path}")
+    logger.info "Forward request: #{uri}"
 
     if request.get?
-      result = Net::HTTP.get_response(url.host, path, url.port)
+      result = Net::HTTP.get_response(uri)
       send_data result.body, :status => result.code, :type => result.content_type, :disposition => 'inline'
     else
       #POST
-      http = Net::HTTP.new(url.host, url.port)
+      http = Net::HTTP.new(uri.host, uri.port)
       req = Net::HTTP::Post.new(path)
       post_params = []
       post_params += url.query.split(/&|=/) if url.query
