@@ -410,9 +410,13 @@ class PrintController < ApplicationController
       when 'GET'
         # add params to URL
         url = URI.parse("#{url}?#{print_params.to_param}") unless print_params.nil?
-        response = Net::HTTP.get_response(url)
+        http = Net::HTTP.new(url.host, url.port)
+        http.read_timeout = 300
+        req = Net::HTTP::Get.new(uri.request_uri)
+        response = http.request(req)
       when 'POST'
         http = Net::HTTP.new(url.host, url.port)
+        http.read_timeout = 300
         req = Net::HTTP::Post.new(url.path)
         req.set_form_data(print_params)
         response = http.request(req)
