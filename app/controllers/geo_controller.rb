@@ -7,7 +7,7 @@ class GeoController < ApplicationController
   end
 
   def index
-    client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+    client_srid = params[:srid].blank? ? geo_model.default_client_srid : params[:srid].to_i
 
     @features = geo_model.bbox_filter(params)
     @features = @features.user_filter(current_ability)
@@ -23,7 +23,7 @@ class GeoController < ApplicationController
   end
 
   def show
-    client_srid = params[:srid].blank? ? GeoModel.default_client_srid : params[:srid].to_i
+    client_srid = params[:srid].blank? ? geo_model.default_client_srid : params[:srid].to_i
 
     @feature = geo_model.user_filter(current_ability).json_filter.select_geojson_geom(client_srid).find(params[:id])
     render :json => [@feature].to_geojson
