@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.test_files  = s.files.grep(%r{^(test|spec|features)/})
 
+  s.required_ruby_version = '>= 2.3'
+
   s.add_dependency "rails", "~> 3.2.13"
   s.add_dependency "json"
   s.add_dependency "acts_as_tree", "0.2.0"
@@ -36,6 +38,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "hpricot" # Cascaded WMS FeatureInfo parsing
 
-  s.add_dependency "pg"
+  s.add_dependency "pg", ">= 0.18.0"
   s.add_dependency "activerecord-postgis-adapter", "0.4.1"
 end

@@ -17,6 +17,7 @@ Mapfish Appserver comes with the following out-of-the box features:
 -   Fully customizable legends and feature infos
 -   Creation of complex custom searches
 -   Rich digitizing and editing functionality
+-   Support for differing client and server spatial reference systems
 -   Role-based access control on topic, layer and attribute level
 -   Access control for WMS and WFS
 -   Rich library of ExtJS 4 based map components
@@ -31,7 +32,9 @@ Documentation
 
 For more documentation see the [mapfish-appserver.github.io](http://mapfish-appserver.github.io/)
 
-Note: Mapfish Appserver v1.1.0 or later no longer uses the gb_mapfish_print gem, but uses a
+Note: Mapfish Appserver v2.0.0 requires Ruby 2.3 or greater
+
+Note: Mapfish Appserver v1.1.0 or greater no longer uses the gb_mapfish_print gem, but uses a
 separately installed Mapfish Print v3 for printing (see documentation)
 
 Authors and License
@@ -42,4 +45,4 @@ Stefan Zinggeler and Adrian Herzog, Canton of Zurich.
 
 New BSD License
 
-*Copyright (c) 2009-2015 Sourcepole AG & Canton of Zurich*
+*Copyright (c) 2009-2017 Sourcepole AG & Canton of Zurich*
