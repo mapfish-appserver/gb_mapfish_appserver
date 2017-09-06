@@ -102,8 +102,6 @@ Devise.setup do |config|
   # config.confirmation_keys = [ :email ]
 
   # ==> Configuration for :rememberable
-  
-  config.use_salt_as_remember_token = true
 
   # The time the user will be remembered without asking for credentials again.
   # config.remember_for = 2.weeks

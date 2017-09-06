@@ -2,9 +2,9 @@
 
 class PrintController < ApplicationController
   begin
-    require 'RMagick'
+    require 'rmagick'
   rescue LoadError
-    ActionController::Base.logger.info "Couldn't find RMagick. Image export not supported"
+    ActionController::Base.logger.info "Couldn't find rmagick. Image export not supported"
   end
 
   skip_before_filter :verify_authenticity_token, :only => :create # allow /print/create with POST
